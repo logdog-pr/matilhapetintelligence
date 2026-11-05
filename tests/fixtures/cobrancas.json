@@ -1,0 +1,29 @@
+{
+    "cobrancas": [
+        {
+            "referente": "",
+            "excluido": true,
+            "observacao": "Nova Observação 2",
+            "id_cliente": 498966,
+            "acrescimo": 0,
+            "desconto": 0,
+            "detalhe_forma_pagamento": "boleto",
+            "valor_pago": 1525,
+            "percentual_juros_cobrado": 5.001,
+            "valor": 1500,
+            "id_parceiro": "asa",
+            "vencimento": "2019-12-24",
+            "percentual_multa": 0,
+            "valor_multa": 25,
+            "forma_pagamento": "Boleto",
+            "dias_juros_cobrado": 0,
+            "percentual_juros_mensal": 0,
+            "ultima_alteracao": "2019-04-08T10:07:54.662823",
+            "id": 510600,
+            "pagamento": "2019-01-01",
+            "id_pedido": null,
+            "valor_juros": 0
+        }
+    ],
+    "href_proxima_pagina": null
+}

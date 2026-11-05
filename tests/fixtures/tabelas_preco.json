@@ -1,0 +1,23 @@
+{
+    "tabelas_preco": [
+        {
+            "excluido": false,
+            "observacao": "Tabela para clientes de campinas",
+            "ultima_alteracao": "2019-04-09T11:03:18.255874",
+            "nome": "Tabela com desconto",
+            "id_parceiro": "",
+            "id": 11328,
+            "inativa": false
+        },
+        {
+            "excluido": false,
+            "observacao": "Tabela de preço para o vendedor Guilherme",
+            "ultima_alteracao": "2019-04-09T11:04:42.308098",
+            "nome": "Tabela Vendedor Guilherme",
+            "id_parceiro": "",
+            "id": 11330,
+            "inativa": false
+        }
+    ],
+    "href_proxima_pagina": null
+}

@@ -1,0 +1,109 @@
+{
+    "href_proxima_pagina": null,
+    "clientes": [
+        {
+            "endereco_entrega": {
+                "uf": "SP",
+                "cidade": "Americana",
+                "complemento": "",
+                "numero": "55",
+                "logradouro": "Rua das Azaléas",
+                "bairro": "Cidade Jardim II",
+                "cep": "13467120"
+            },
+            "telefone": "(19) 3032-2993",
+            "observacao": "Recebimento de mercadorias de seg-sex das 8h as 12h",
+            "limite_credito": 10500.95,
+            "referencias_bancarias": [
+                {
+                    "telefone": "(44) 6789-0098",
+                    "conta": "5678-9",
+                    "banco": "Bradesco",
+                    "agencia": "1234",
+                    "gerente": "Sr. José Luiz"
+                },
+                {
+                    "telefone": "(31) 1010-8876",
+                    "conta": "10102-0",
+                    "banco": "Itaú",
+                    "agencia": "0001",
+                    "gerente": "Sra. Maria Angela"
+                }
+            ],
+            "latitude": -22.730072,
+            "ie_rg": "ISENTO",
+            "email_copia_pedido": "copiapedido@pedidook.com.br",
+            "ultima_alteracao": "2019-05-16T22:37:09.342842",
+            "razao_social": "LIASCH & PALOMO DESENVOLVIMENTO DE SISTEMAS LTDA.",
+            "id": 1722049,
+            "cnpj_cpf": "21861209000110",
+            "longitude": -47.30314,
+            "endereco_cobranca": {
+                "uf": "SP",
+                "cidade": "Americana",
+                "complemento": "10 andar",
+                "numero": "1050",
+                "logradouro": "Rua Doze de Novembro",
+                "bairro": "Centro",
+                "cep": "13465490"
+            },
+            "excluido": false,
+            "codigo": "1",
+            "endereco": {
+                "uf": "SP",
+                "cidade": "AMERICANA",
+                "complemento": "Sala 704",
+                "numero": "1555",
+                "logradouro": "R SAO GABRIEL",
+                "bairro": "VILA BELVEDERE",
+                "cep": "13473000"
+            },
+            "contatos": [
+                {
+                    "dia_aniversario": null,
+                    "excluido": false,
+                    "telefone1": "(19) 3468-3258",
+                    "ultima_alteracao": "2019-05-16T22:37:09.896818",
+                    "mes_aniversario": null,
+                    "departamento": "Comercial",
+                    "nome": "João Henrique",
+                    "id_parceiro": null,
+                    "id": 309392,
+                    "telefone2": "",
+                    "email": "contato@pedidook.com.br"
+                },
+                {
+                    "dia_aniversario": 7,
+                    "excluido": false,
+                    "telefone1": "(19) 3468-3258",
+                    "ultima_alteracao": "2019-05-16T22:37:09.613882",
+                    "mes_aniversario": 6,
+                    "departamento": "Desenvolvimento",
+                    "nome": "Carlos Eduardo",
+                    "id_parceiro": null,
+                    "id": 309391,
+                    "telefone2": "(19) 9.9868-7264",
+                    "email": "contato@pedidook.com.br"
+                }
+            ],
+            "id_parceiro": null,
+            "atendimento": "SEG",
+            "referencias_comerciais": [
+                {
+                    "telefone": "(11) 3030-8890",
+                    "empresa": "Microsoft",
+                    "contato": "Bill"
+                },
+                {
+                    "telefone": "(11) 4055-9877",
+                    "empresa": "Apple",
+                    "contato": "Steve"
+                }
+            ],
+            "fantasia": "RELEASE T I",
+            "segmento": "Software",
+            "email_xml_nfe": "nfexml@pedidook.com.br",
+            "ponto_de_referencia": "Portal de Americana"
+        }
+    ]
+}

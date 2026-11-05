@@ -1,0 +1,16 @@
+{
+    "href_proxima_pagina": null,
+    "vendedores": [
+        {
+            "excluido": false,
+            "ultima_alteracao": "2019-04-09T10:59:45.594809",
+            "codigo_ativacao": "ac1e1b",
+            "nome": "Guilherme",
+            "id_parceiro": "ABC",
+            "id": 5197,
+            "regiao": "Litoral",
+            "informacao_adicional": "",
+            "validade_licenca": "2020-01-03"
+        }
+    ]
+}

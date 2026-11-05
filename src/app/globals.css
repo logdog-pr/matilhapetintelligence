@@ -1,0 +1,264 @@
+@import "tailwindcss";
+
+/*
+ * Identidade Matilha Pet Intelligence — azul-marinho e branco.
+ * Poucas cores, bordas finas, sombras mínimas.
+ */
+@theme {
+  --color-navy-950: #0a1a33;
+  --color-navy-900: #0f2647;
+  --color-navy-800: #163160;
+  --color-navy-700: #1e3a6b;
+  --color-navy-600: #2b4a80;
+  --color-navy-500: #3b5b92;
+  --color-navy-300: #94a7c6;
+  --color-navy-200: #c9d4e6;
+  --color-navy-100: #e6ecf5;
+  --color-navy-50: #f4f7fb;
+
+  --color-background: #ffffff;
+  --color-foreground: #0a1a33;
+  --color-muted: #5b6b85;
+  --color-border: #e6ecf5;
+
+  /* Estados — tons discretos */
+  --color-success: #1f7a55;
+  --color-warning: #9a6a00;
+  --color-danger: #b42318;
+
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+}
+
+html,
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Barra de meta com cachorro ---------- */
+
+@keyframes goal-shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes dog-leg-a {
+  0%,
+  100% {
+    transform: rotate(28deg);
+  }
+  50% {
+    transform: rotate(-28deg);
+  }
+}
+
+@keyframes dog-leg-b {
+  0%,
+  100% {
+    transform: rotate(-28deg);
+  }
+  50% {
+    transform: rotate(28deg);
+  }
+}
+
+@keyframes dog-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes dog-wag {
+  0%,
+  100% {
+    transform: rotate(-12deg);
+  }
+  50% {
+    transform: rotate(14deg);
+  }
+}
+
+@keyframes bone-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.6);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes goal-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(30, 58, 107, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(30, 58, 107, 0.15);
+  }
+}
+
+.goal-shimmer {
+  animation: goal-shimmer 1.2s linear infinite;
+}
+
+.dog-running .dog-leg {
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+}
+.dog-running .dog-leg-a {
+  animation: dog-leg-a 0.32s ease-in-out infinite;
+}
+.dog-running .dog-leg-b {
+  animation: dog-leg-b 0.32s ease-in-out infinite;
+}
+.dog-running .dog-body {
+  animation: dog-bob 0.32s ease-in-out infinite;
+}
+.dog-tail {
+  transform-box: fill-box;
+  transform-origin: 100% 100%;
+  animation: dog-wag 0.9s ease-in-out infinite;
+}
+.dog-running .dog-tail {
+  animation-duration: 0.32s;
+}
+.bone-pop {
+  animation: bone-pop 0.5s ease-out both;
+}
+.goal-complete {
+  animation: goal-glow 2.4s ease-in-out infinite;
+}
+
+/* ---------- Cachorro: vida extra ---------- */
+
+/* pulinhos de comemoração ao bater a meta */
+@keyframes dog-hop {
+  0%, 60%, 100% { transform: translateY(0) scaleY(1); }
+  8% { transform: translateY(1px) scaleY(0.92); }
+  22% { transform: translateY(-14px) scaleY(1.04); }
+  36% { transform: translateY(0) scaleY(0.95); }
+  44% { transform: translateY(-6px); }
+  52% { transform: translateY(0); }
+}
+.dog-hop {
+  transform-origin: 50% 100%;
+  animation: dog-hop 1.8s ease-in-out infinite;
+}
+
+/* cabeça inclinando de curiosidade quando sentado */
+@keyframes dog-tilt {
+  0%, 70%, 100% { transform: rotate(0deg); }
+  78%, 90% { transform: rotate(-10deg); }
+}
+.dog-head {
+  transform-box: fill-box;
+  transform-origin: 30% 80%;
+  animation: dog-tilt 4.5s ease-in-out infinite;
+}
+
+/* pegadas que sobem e somem ao completar a meta */
+@keyframes paw-burst {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.4) rotate(0deg); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1) rotate(var(--rot)); }
+}
+.paw-burst {
+  animation: paw-burst 1.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ---------- Interface: entrada e interação ---------- */
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-rise {
+  animation: rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes pop-in {
+  0% { opacity: 0; transform: scale(0.9); }
+  70% { transform: scale(1.03); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.animate-pop {
+  animation: pop-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes pulse-dot {
+  0% { box-shadow: 0 0 0 0 currentColor; }
+  70% { box-shadow: 0 0 0 6px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+.pulse-dot {
+  animation: pulse-dot 2s ease-out infinite;
+}
+
+/* cards que levantam no hover */
+.lift {
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s, border-color 0.25s;
+}
+.lift:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-navy-200);
+  box-shadow: 0 10px 24px -14px rgba(15, 38, 71, 0.35);
+}
+
+/* ícones da sidebar balançam no hover */
+@keyframes nudge {
+  0%, 100% { transform: rotate(0); }
+  30% { transform: rotate(-12deg); }
+  60% { transform: rotate(8deg); }
+}
+.nav-item:hover .nav-icon {
+  animation: nudge 0.45s ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .goal-shimmer,
+  .dog-running .dog-leg-a,
+  .dog-running .dog-leg-b,
+  .dog-running .dog-body,
+  .dog-tail,
+  .dog-hop,
+  .dog-head,
+  .paw-burst,
+  .bone-pop,
+  .goal-complete,
+  .animate-rise,
+  .animate-pop,
+  .pulse-dot,
+  .nav-item:hover .nav-icon {
+    animation: none !important;
+  }
+  .paw-burst {
+    display: none;
+  }
+  .goal-fill,
+  .goal-dog,
+  .lift {
+    transition: none !important;
+  }
+  .lift:hover {
+    transform: none;
+  }
+}

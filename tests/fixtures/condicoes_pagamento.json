@@ -1,0 +1,50 @@
+{
+    "href_proxima_pagina": null,
+    "condicoes_pagamento": [
+        {
+            "excluido": true,
+            "ultima_alteracao": "2019-04-04T10:31:57.795557",
+            "id_parceiro": "",
+            "id": 15,
+            "prazos": [
+                20,
+                100,
+                30
+            ]
+        },
+        {
+            "excluido": true,
+            "ultima_alteracao": "2019-04-04T10:32:09.384627",
+            "id_parceiro": "",
+            "id": 14,
+            "prazos": [
+                50,
+                100,
+                30
+            ]
+        },
+        {
+            "excluido": false,
+            "ultima_alteracao": "2019-04-04T10:32:28.89678",
+            "id_parceiro": "",
+            "id": 17,
+            "prazos": [
+                0,
+                21,
+                7,
+                14
+            ]
+        },
+        {
+            "excluido": true,
+            "ultima_alteracao": "2019-04-04T10:34:48.262705",
+            "id_parceiro": "",
+            "id": 16,
+            "prazos": [
+                100,
+                60,
+                30
+            ]
+        }
+    ]
+}

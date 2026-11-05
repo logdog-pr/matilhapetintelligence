@@ -1,0 +1,57 @@
+{
+    "href_proxima_pagina": null,
+    "fornecedores": [
+        {
+            "excluido": false,
+            "telefone": "19 99868-7264",
+            "observacao": "Novo fornecedor de canetas",
+            "endereco": {
+                "uf": "SP",
+                "cidade": "Americana",
+                "complemento": "de 1157 ao fim - lado ímpar",
+                "numero": "100",
+                "logradouro": "Rua São Gabriel",
+                "bairro": "Vila Belvedere",
+                "cep": "13473000"
+            },
+            "id_parceiro": "DF3",
+            "ie_rg": "446096003",
+            "fantasia": "Canetas",
+            "site": "canetascia.com.br",
+            "ultima_alteracao": "2019-04-09T10:31:09.850455",
+            "razao_social": "Canetas Ani",
+            "ponto_de_referencia": "",
+            "celular": "19 99868-7264",
+            "id": 97,
+            "cnpj_cpf": "",
+            "contato": "João",
+            "email": "joao@empresa.com"
+        },
+        {
+            "excluido": false,
+            "telefone": "19 99868-7264",
+            "observacao": "Cadernos personalizados",
+            "endereco": {
+                "uf": "RN",
+                "cidade": "Natal",
+                "complemento": "58",
+                "numero": "100",
+                "logradouro": "Rua Terezina",
+                "bairro": "Cidade da Esperança",
+                "cep": "59070440"
+            },
+            "id_parceiro": "aass",
+            "ie_rg": "",
+            "fantasia": "Cadernos Lili",
+            "site": "lilicadernos.com.br",
+            "ultima_alteracao": "2019-04-09T10:33:43.292198",
+            "razao_social": "Cadernos Lili ",
+            "ponto_de_referencia": "",
+            "celular": "19 99868-7264",
+            "id": 96,
+            "cnpj_cpf": "",
+            "contato": "João",
+            "email": "joao@empresa.com"
+        }
+    ]
+}

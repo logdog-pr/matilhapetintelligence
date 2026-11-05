@@ -1,0 +1,87 @@
+{
+    "href_proxima_pagina": null,
+    "pedidos": [
+        {
+            "situacao": "Pendente",
+            "base_vencimento": "emissao",
+            "numero": 1,
+            "observacao_cliente": "A mercadoria de bonificação vai no próximo pedido",
+            "tipo_desconto_acrescimo": "percentual",
+            "forma_pagamento": "Boleto",
+            "transportadora_contato": "Sr. Luisa (19) 3468-0098",
+            "ultima_alteracao": "2019-04-23T17:22:20.901861",
+            "observacao_representada": "Recebimento de seg, qua e sex",
+            "id": 3643378,
+            "emissao": "2019-04-23",
+            "faturamento": null,
+            "tipo_frete": "FOB",
+            "excluido": false,
+            "id_tabela_preco": null,
+            "itens": [
+                {
+                    "excluido": false,
+                    "preco_bruto": 80.99,
+                    "observacao": "",
+                    "ultima_alteracao": "2019-04-23T17:22:21.81291",
+                    "qtd_embalagem": 1,
+                    "percentual_desconto_acrescimo": 3.5,
+                    "embalagem": "UN",
+                    "preco_liquido": 78.8,
+                    "grades": [
+                        {
+                            "tamanho_cor": "XG",
+                            "quantidade": 1
+                        },
+                        {
+                            "tamanho_cor": "M",
+                            "quantidade": 6
+                        },
+                        {
+                            "tamanho_cor": "G",
+                            "quantidade": 6
+                        },
+                        {
+                            "tamanho_cor": "GG",
+                            "quantidade": 3
+                        },
+                        {
+                            "tamanho_cor": "P",
+                            "quantidade": 6
+                        }
+                    ],
+                    "preco_custo": 60,
+                    "id_produto": 6495124,
+                    "quantidade": 22
+                },
+                {
+                    "excluido": false,
+                    "preco_bruto": 36.5,
+                    "observacao": "Cores sortidas",
+                    "ultima_alteracao": "2019-04-23T17:22:21.81291",
+                    "qtd_embalagem": 12,
+                    "percentual_desconto_acrescimo": -10,
+                    "embalagem": "DZ",
+                    "preco_liquido": 30.88,
+                    "grades": [],
+                    "preco_custo": 22.45,
+                    "id_produto": 6495123,
+                    "quantidade": 2
+                }
+            ],
+            "id_vendedor": 22614,
+            "id_cliente": 1722157,
+            "ordem_compra": "10/2019",
+            "id_parceiro": null,
+            "transportadora": "TransBem",
+            "previsao_entrega": "2019-04-30",
+            "valor_frete": 0,
+            "condicao_pagamento": [
+                60,
+                30,
+                0
+            ],
+            "valor_desconto_acrescimo": -6,
+            "status": "pedido"
+        }
+    ]
+}
