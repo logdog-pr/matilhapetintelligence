@@ -1,34 +1,45 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Button, Input, Label } from "@/components/ui/primitives";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
+const MESSAGES: Record<string, string> = {
+  "sem-acesso": "Seu login foi aceito, mas o usuário não está ativo no Pet Intelligence. Fale com o administrador.",
+};
+
+/** Só permite redirecionar para caminhos internos (evita open redirect). */
+function safeNext(next: string | null): string {
+  return next && next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/login") ? next : "/";
+}
+
 export function LoginForm() {
-  const router = useRouter();
   const params = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(
-    params.get("erro") === "sem-acesso" ? "Seu usuário não está ativo no Pet Intelligence. Fale com o administrador." : null,
-  );
+  const [error, setError] = useState<string | null>(null);
+
+  // Mostra avisos vindos de redirecionamentos do servidor (ex.: ?erro=sem-acesso)
+  useEffect(() => {
+    const code = params.get("erro");
+    if (code && MESSAGES[code]) setError(MESSAGES[code]);
+  }, [params]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
     const supabase = createSupabaseBrowserClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     if (error) {
+      setLoading(false);
       setError("E-mail ou senha inválidos.");
       return;
     }
-    const next = params.get("next");
-    router.replace(next && next.startsWith("/") && !next.startsWith("//") ? next : "/");
-    router.refresh();
+    // Navegação completa: garante que o servidor receba o cookie da nova sessão.
+    window.location.assign(safeNext(params.get("next")));
   }
 
   return (

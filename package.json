@@ -16,7 +16,8 @@
     "sync:full": "tsx scripts/sync.mts --mode full",
     "sync:incremental": "tsx scripts/sync.mts --mode incremental",
     "db:check": "tsx scripts/db-check.mts",
-    "db:rls-check": "tsx scripts/rls-check.mts"
+    "db:rls-check": "tsx scripts/rls-check.mts",
+    "db:users-check": "tsx scripts/users-check.mts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
