@@ -52,7 +52,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
       { href: "/estoque", label: "Estoque", icon: Boxes, roles: ["ADMIN", "GESTOR"] },
       { href: "#", label: "Financeiro", icon: Wallet, phase: 5, roles: ["ADMIN"] },
       { href: "#", label: "Relatórios", icon: FileText, phase: 5, roles: ["ADMIN", "GESTOR"] },
-      { href: "#", label: "Pet Intelligence AI", icon: Bot, phase: 6 },
+      { href: "/assistente", label: "Pet Intelligence AI", icon: Bot },
     ],
   },
   {

@@ -20,7 +20,9 @@ export type Permission =
   | "integration:manage"
   | "users:manage"
   | "settings:manage"
-  | "search:use";
+  | "search:use"
+  | "ai:use" // Pet Intelligence AI (ferramentas respeitam as demais permissões)
+  | "ai:manage"; // escolher provedor/modelo da IA
 
 const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
   ADMIN: [
@@ -40,6 +42,8 @@ const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     "users:manage",
     "settings:manage",
     "search:use",
+    "ai:use",
+    "ai:manage",
   ],
   GESTOR: [
     "dashboard:view",
@@ -52,8 +56,9 @@ const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     "promotions:manage",
     "stock:view",
     "search:use",
+    "ai:use",
   ],
-  VENDEDOR: ["dashboard:view", "goals:view", "customers:view", "search:use"],
+  VENDEDOR: ["dashboard:view", "goals:view", "customers:view", "search:use", "ai:use"],
 };
 
 export interface Principal {

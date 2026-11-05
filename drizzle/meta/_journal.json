@@ -29,6 +29,13 @@
       "when": 1793851835921,
       "tag": "0003_customer_coordinates",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793897387730,
+      "tag": "0004_ai_history",
+      "breakpoints": true
     }
   ]
 }
