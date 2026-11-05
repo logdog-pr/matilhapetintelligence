@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Select } from "@/components/ui/primitives";
@@ -20,19 +20,42 @@ function parseBRL(v: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-export function GoalForm({ sellers, defaultMonth }: { sellers: { id: string; name: string }[]; defaultMonth: string }) {
+export interface GoalEditValues {
+  id: string;
+  sellerLabel: string;
+  periodKind: string;
+  dayMode: string;
+  periodStart: string;
+  periodEnd: string;
+  targetRevenue: number | null;
+  targetOrders: number | null;
+  targetNewCustomers: number | null;
+}
+
+const brl = (n: number | null) => (n === null ? "" : n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+
+export function GoalForm({
+  sellers,
+  defaultMonth,
+  edit,
+}: {
+  sellers: { id: string; name: string }[];
+  defaultMonth: string;
+  /** Quando informado, o formulário edita a meta existente (PATCH). */
+  edit?: GoalEditValues;
+}) {
   const router = useRouter();
   const range = monthRange(defaultMonth);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     sellerId: "",
-    periodKind: "MENSAL",
-    dayMode: "CORRIDOS",
-    periodStart: range.start,
-    periodEnd: range.end,
-    targetRevenue: "",
-    targetOrders: "",
-    targetNewCustomers: "",
+    periodKind: edit?.periodKind ?? "MENSAL",
+    dayMode: edit?.dayMode ?? "CORRIDOS",
+    periodStart: edit?.periodStart ?? range.start,
+    periodEnd: edit?.periodEnd ?? range.end,
+    targetRevenue: brl(edit?.targetRevenue ?? null),
+    targetOrders: edit?.targetOrders?.toString() ?? "",
+    targetNewCustomers: edit?.targetNewCustomers?.toString() ?? "",
   });
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -42,11 +65,11 @@ export function GoalForm({ sellers, defaultMonth }: { sellers: { id: string; nam
     e.preventDefault();
     setSaving(true);
     setError(null);
-    const res = await fetch("/api/goals", {
-      method: "POST",
+    const res = await fetch(edit ? `/api/goals/${edit.id}` : "/api/goals", {
+      method: edit ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        sellerId: form.sellerId || null,
+        ...(edit ? {} : { sellerId: form.sellerId || null }),
         periodKind: form.periodKind,
         dayMode: form.dayMode,
         periodStart: form.periodStart,
@@ -63,8 +86,16 @@ export function GoalForm({ sellers, defaultMonth }: { sellers: { id: string; nam
       return;
     }
     setOpen(false);
-    setForm((f) => ({ ...f, targetRevenue: "", targetOrders: "", targetNewCustomers: "" }));
+    if (!edit) setForm((f) => ({ ...f, targetRevenue: "", targetOrders: "", targetNewCustomers: "" }));
     router.refresh();
+  }
+
+  if (!open && edit) {
+    return (
+      <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
+        <Pencil className="h-3.5 w-3.5" /> Editar
+      </Button>
+    );
   }
 
   if (!open) {
@@ -80,14 +111,15 @@ export function GoalForm({ sellers, defaultMonth }: { sellers: { id: string; nam
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Nova meta</CardTitle>
+        <CardTitle>{edit ? `Editar meta · ${edit.sellerLabel}` : "Nova meta"}</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={submit} className="grid gap-4 md:grid-cols-4">
           <div className="md:col-span-2">
             <Label htmlFor="seller">Responsável</Label>
-            <Select id="seller" value={form.sellerId} onChange={set("sellerId")}>
-              <option value="">Empresa (meta geral)</option>
+            <Select id="seller" value={form.sellerId} onChange={set("sellerId")} disabled={!!edit} title={edit ? "O responsável não muda na edição" : undefined}>
+              {edit && <option value="">{edit.sellerLabel}</option>}
+              {!edit && <option value="">Empresa (meta geral)</option>}
               {sellers.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name}

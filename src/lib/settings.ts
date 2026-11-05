@@ -28,6 +28,11 @@ export const SETTING_DEFAULTS = {
   "sync.customerSellersRefreshDays": 7,
   /** Status de pedido que contam como faturamento. */
   "revenue.statuses": ["pedido"] as string[],
+  /**
+   * Cliente "ativo" no dashboard: comprou nos últimos N dias até o fim do período.
+   * Provisório até a classificação por frequência individual (Fase 4).
+   */
+  "customers.activeDays": 90,
   /** Feriados (YYYY-MM-DD) desconsiderados no cálculo por dias úteis. */
   "goals.holidays": [] as string[],
 };

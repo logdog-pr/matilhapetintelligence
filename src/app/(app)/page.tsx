@@ -1,24 +1,30 @@
+import { asc, eq } from "drizzle-orm";
 import type { Metadata } from "next";
-import Link from "next/link";
-import { GoalEmpty, GoalProgress } from "@/components/goal-progress/GoalProgress";
-import { Receipt, ShoppingBag, TrendingUp } from "lucide-react";
-import { Kpi } from "@/components/ui/Kpi";
+import { DashboardView } from "@/components/dashboard/DashboardView";
+import { PeriodFilter } from "@/components/dashboard/PeriodFilter";
+import { GoalEmpty } from "@/components/goal-progress/GoalProgress";
 import { Badge, PageHeader } from "@/components/ui/primitives";
 import { can } from "@/lib/auth/rbac";
 import { requirePageUser } from "@/lib/auth/session";
+import {
+  dashboardOverview,
+  dashboardPerformance,
+  dashboardQuerySchema,
+  dashboardSales,
+  dashboardTopProducts,
+  resolveScope,
+} from "@/lib/dashboard-service";
 import { getDb } from "@/lib/db/client";
-import { formatDate, formatInt, monthBounds, monthLabel, todayInSaoPaulo } from "@/lib/format";
+import { sellers } from "@/lib/db/schema";
 import { goalsForUser } from "@/lib/goals-service";
-import { getRevenueSummary } from "@/lib/queries/revenue";
 import { getSyncHealth } from "@/lib/queries/sync-health";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const user = await requirePageUser("dashboard:view");
-  const db = getDb();
-  const today = todayInSaoPaulo();
-  const month = monthBounds(today);
+  const parsed = dashboardQuerySchema.safeParse(await searchParams);
+  const q = parsed.success ? parsed.data : {};
   const company = can(user, "dashboard:company");
 
   if (!company && !user.sellerId) {
@@ -30,21 +36,39 @@ export default async function DashboardPage() {
     );
   }
 
-  const sellerId = company ? null : user.sellerId;
-  const [health, summary, { goals }] = await Promise.all([
+  const db = getDb();
+  // Vendedor pedindo outro vendedor na URL: ignora e mostra os próprios dados.
+  const scope = resolveScope(user, user.role === "VENDEDOR" ? { ...q, vendedor: undefined } : q);
+  const [health, overview, sales, sellerPerf, top, goalData, sellerOptions] = await Promise.all([
     getSyncHealth(db),
-    getRevenueSummary(db, { start: month.start, end: month.end, sellerId }),
-    goalsForUser(db, user, { sellerId }),
+    dashboardOverview(db, scope),
+    dashboardSales(db, scope),
+    dashboardPerformance(db, scope),
+    dashboardTopProducts(db, scope),
+    goalsForUser(db, user, { month: scope.period.end.slice(0, 7), sellerId: scope.sellerId }),
+    scope.canCompareSellers
+      ? db.select({ id: sellers.id, name: sellers.name }).from(sellers).where(eq(sellers.deletedInSource, false)).orderBy(asc(sellers.name))
+      : Promise.resolve([]),
   ]);
-  const ordersHealth = health.resources.find((r) => r.resource === "pedidos");
-  const hasData = !!ordersHealth?.lastSuccessfulSync;
-  const mainGoal = goals.find((g) => (company ? g.sellerId === null : g.sellerId === user.sellerId) && g.periodKind === "MENSAL" && g.targetRevenue);
+
+  const goal =
+    goalData.goals.find((g) => (scope.sellerId ? g.sellerId === scope.sellerId : g.sellerId === null) && g.periodKind === "MENSAL" && g.targetRevenue) ?? null;
+  const hasData = !!health.resources.find((r) => r.resource === "pedidos")?.lastSuccessfulSync;
+  const selectedSeller = sellerOptions.find((s) => s.id === scope.sellerId)?.name;
+
+  const qs = new URLSearchParams();
+  qs.set("p", scope.period.preset);
+  if (scope.period.preset === "personalizado") {
+    qs.set("de", scope.period.start);
+    qs.set("ate", scope.period.end);
+  }
+  if (scope.sellerId && user.role !== "VENDEDOR") qs.set("vendedor", scope.sellerId);
 
   return (
     <>
       <PageHeader
-        title={company ? "Dashboard geral" : "Meu desempenho"}
-        description={`${monthLabel(today)} · faturamento de pedidos por data de emissão`}
+        title={!company ? "Meu desempenho" : selectedSeller ? `Dashboard · ${selectedSeller}` : "Dashboard geral"}
+        description={`${scope.period.label} · faturamento de pedidos por data de emissão`}
         actions={
           health.overall !== "atualizado" ? (
             <Badge tone={health.overall === "indisponivel" ? "neutral" : "warning"}>
@@ -54,50 +78,28 @@ export default async function DashboardPage() {
         }
       />
 
-      <div className="space-y-6">
-        {!hasData ? (
-          <GoalEmpty
-            title="Dados indisponíveis"
-            message={
-              can(user, "integration:manage")
-                ? "Nenhum pedido foi importado do PedidoOK ainda. Rode a importação histórica em Integração PedidoOK."
-                : "Nenhum pedido foi importado do PedidoOK ainda. Assim que o administrador concluir a importação, os números aparecem aqui."
-            }
-          />
-        ) : mainGoal ? (
-          <GoalProgress
-            title={company ? "Meta de faturamento da empresa" : "Minha meta de faturamento"}
-            subtitle={`${formatDate(mainGoal.periodStart)} a ${formatDate(mainGoal.periodEnd)}`}
-            progress={mainGoal.revenue}
-            extras={[
-              { label: "Pedidos", value: mainGoal.orders.target ? `${formatInt(mainGoal.orders.realized)} de ${formatInt(mainGoal.orders.target)}` : formatInt(mainGoal.orders.realized) },
-            ]}
-          />
-        ) : (
-          <GoalEmpty
-            title="Nenhuma meta mensal cadastrada"
-            message={can(user, "goals:manage") ? "Cadastre a meta do mês em Metas para acompanhar o progresso aqui." : "O administrador ainda não cadastrou a meta deste mês."}
-            period={month}
-          />
-        )}
+      <PeriodFilter preset={scope.period.preset} start={scope.period.start} end={scope.period.end} sellers={sellerOptions} sellerId={scope.sellerId} />
 
-        {hasData && (
-          <div className="grid gap-4 sm:grid-cols-3">
-            <Kpi label="Faturamento do mês" value={summary.revenue} format="brl" icon={TrendingUp} hint="pedidos com status “pedido”, não excluídos" />
-            <Kpi label="Pedidos realizados" value={summary.orders} icon={ShoppingBag} delay={80} />
-            <Kpi label="Ticket médio" value={summary.averageTicket} format="brl" icon={Receipt} delay={160} hint="faturamento ÷ pedidos" />
-          </div>
-        )}
-
-        <p className="text-xs text-muted">
-          Gráficos, comparativos e demais indicadores chegam na Fase 2.{" "}
-          {can(user, "goals:view_all") && (
-            <Link href="/metas" className="text-navy-700 underline underline-offset-2">
-              Ver todas as metas
-            </Link>
-          )}
-        </p>
-      </div>
+      {!hasData ? (
+        <GoalEmpty
+          title="Dados indisponíveis"
+          message={
+            can(user, "integration:manage")
+              ? "Nenhum pedido foi importado do PedidoOK ainda. Rode a importação histórica em Integração PedidoOK."
+              : "Nenhum pedido foi importado do PedidoOK ainda. Assim que o administrador concluir a importação, os números aparecem aqui."
+          }
+        />
+      ) : (
+        <DashboardView
+          data={{ period: scope.period, overview, daily: sales.daily, monthly: sales.monthly, sellers: sellerPerf, products: top.products, categories: top.categories, goal }}
+          ordersHref={`/pedidos?${qs.toString()}`}
+          showMargin={scope.canSeeMargin}
+          showStock={scope.canSeeStock}
+          showSellers={scope.canCompareSellers && !scope.sellerId}
+          goalTitle={!company ? "Minha meta de faturamento" : selectedSeller ? `Meta de ${selectedSeller}` : "Meta de faturamento da empresa"}
+          goalEmptyMessage={can(user, "goals:manage") ? "Cadastre a meta do mês em Metas para acompanhar o progresso aqui." : "O administrador ainda não cadastrou a meta deste mês."}
+        />
+      )}
     </>
   );
 }

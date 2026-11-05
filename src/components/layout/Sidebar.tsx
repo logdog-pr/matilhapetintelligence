@@ -7,6 +7,7 @@ import {
   FileText,
   LayoutDashboard,
   PlugZap,
+  ShoppingBag,
   Store,
   Tag,
   Target,
@@ -39,7 +40,8 @@ const NAV: { section: string; items: NavItem[] }[] = [
   {
     section: "Comercial",
     items: [
-      { href: "#", label: "Vendedores", icon: BarChart3, phase: 2, roles: ["ADMIN", "GESTOR"] },
+      { href: "/vendedores", label: "Vendedores", icon: BarChart3, roles: ["ADMIN", "GESTOR"] },
+      { href: "/pedidos", label: "Pedidos", icon: ShoppingBag },
       { href: "#", label: "Clientes", icon: Store, phase: 4 },
       { href: "#", label: "Promoções", icon: Tag, phase: 4, roles: ["ADMIN", "GESTOR"] },
     ],

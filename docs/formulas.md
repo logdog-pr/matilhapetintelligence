@@ -27,6 +27,21 @@ Ticket médio = `faturamento ÷ nº de pedidos` (fica "—" quando não há pedi
 
 Faturamento **não** é recebimento e **não** é lucro.
 
+## Dashboard ([src/lib/queries/dashboard.ts](../src/lib/queries/dashboard.ts), [src/lib/periods.ts](../src/lib/periods.ts))
+| Indicador | Definição |
+|---|---|
+| Faturamento, pedidos, ticket médio | como em "Faturamento" acima, no período filtrado |
+| Variação | `(atual − anterior) / anterior × 100`; "sem base" quando o anterior é zero |
+| Período anterior | mês atual → mesmos dias do mês anterior; mês anterior → mês retrasado; ano atual → mesmo intervalo do ano anterior; demais → janela anterior de mesmo tamanho |
+| Lucro bruto estimado | `Σ líquido − Σ custo histórico` **só dos pedidos com custo conhecido** (estimativa; não é lucro líquido) |
+| Margem bruta | `lucro bruto estimado ÷ faturamento dos pedidos com custo conhecido × 100`, com a cobertura exibida (% do faturamento com custo) |
+| Clientes ativos / inativos | **provisório (Fase 2)**: ativo = comprou nos últimos `customers.activeDays` (90) dias até o fim do período; inativo = já comprou, mas não nesse intervalo. Substituído na Fase 4 pela frequência individual |
+| Estoque crítico | produtos ativos com `estoque_minimo > 0` e `estoque ≤ estoque_minimo` (estoque **atual**, não histórico) |
+| Produtos / categorias mais vendidos | `Σ total dos itens` (antes do ajuste do cabeçalho), itens não excluídos, de pedidos que contam como faturamento |
+| Desempenho por vendedor | faturamento pelo `id_vendedor` oficial do pedido (sem inferência) |
+
+Perfis: VENDEDOR vê só os próprios números, sem lucro/margem, estoque ou ranking de outros vendedores (forçado no backend).
+
 ## Metas ([src/lib/metrics/goals.ts](../src/lib/metrics/goals.ts))
 | Indicador | Fórmula |
 |---|---|

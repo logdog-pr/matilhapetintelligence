@@ -123,7 +123,24 @@ function GoalCard({ goal: g, title, manage, size = "lg" }: { goal: GoalWithProgr
         <GoalEmpty title={title} message={`Meta sem alvo de faturamento. ${extras.map((e) => `${e.label}: ${e.value}`).join(" · ")}`} period={{ start: g.periodStart, end: g.periodEnd }} />
       )}
       {manage && (
-        <div className="mt-1 flex justify-end">
+        <div className="mt-1 flex flex-wrap items-start justify-end gap-1">
+          <div className="flex min-w-0 flex-1 justify-end [&>div]:mt-2 [&>div]:w-full">
+            <GoalForm
+              sellers={[]}
+              defaultMonth={g.periodStart.slice(0, 7)}
+              edit={{
+                id: g.id,
+                sellerLabel: g.sellerName ?? "Empresa",
+                periodKind: g.periodKind,
+                dayMode: g.dayMode,
+                periodStart: g.periodStart,
+                periodEnd: g.periodEnd,
+                targetRevenue: g.targetRevenue,
+                targetOrders: g.targetOrders,
+                targetNewCustomers: g.targetNewCustomers,
+              }}
+            />
+          </div>
           <DeleteGoalButton id={g.id} />
         </div>
       )}
