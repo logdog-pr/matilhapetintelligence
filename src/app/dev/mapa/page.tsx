@@ -5,7 +5,8 @@ import { PageHeader } from "@/components/ui/primitives";
 import { locate } from "@/lib/geo/locate";
 
 /** Demonstração — SOMENTE em desenvolvimento. Clientes FICTÍCIOS em cidades reais. */
-export default function MapPreview() {
+export default async function MapPreview({ searchParams }: { searchParams: Promise<{ vazio?: string }> }) {
+  const empty = (await searchParams).vazio === "1";
   if (process.env.NODE_ENV === "production") notFound();
   const cities: [string, string, number][] = [
     ["Campinas", "SP", 38], ["São Paulo", "SP", 55], ["Sorocaba", "SP", 17], ["Jundiaí", "SP", 14], ["Piracicaba", "SP", 11],
@@ -32,7 +33,10 @@ export default function MapPreview() {
     <AppShell role="ADMIN" name="Administrador (exemplo)" freshness="atualizado" lastSync={new Date()}>
       <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-warning">Exemplo visual: clientes fictícios em cidades reais. Esta página não existe em produção.</div>
       <PageHeader title="Mapa de clientes (exemplo)" description={`${points.length} clientes fictícios`} />
-      <CustomerHeatMap points={points} />
+      <CustomerHeatMap
+        points={empty ? [] : points}
+        emptyMessage={{ title: "Nenhum cliente importado ainda", description: "Assim que os pedidos do PedidoOK forem importados, a concentração de clientes aparece aqui." }}
+      />
     </AppShell>
   );
 }

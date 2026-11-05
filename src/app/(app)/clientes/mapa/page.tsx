@@ -68,7 +68,19 @@ export default async function CustomersMapPage({ searchParams }: { searchParams:
       </form>
 
       {data.total === 0 ? (
-        <EmptyState title="Nenhum cliente para mostrar" description="Os clientes aparecem após a importação dos pedidos do PedidoOK." />
+        <div className="animate-rise">
+          <CustomerHeatMap
+            points={[]}
+            emptyMessage={
+              q.classe || q.vendedor
+                ? { title: "Nenhum cliente com esses filtros", description: "Ajuste ou limpe os filtros para ver o mapa." }
+                : {
+                    title: "Nenhum cliente importado ainda",
+                    description: "Assim que os pedidos do PedidoOK forem importados, a concentração de clientes aparece aqui.",
+                  }
+            }
+          />
+        </div>
       ) : (
         <div className="grid gap-6 xl:grid-cols-[1fr_320px]">
           <div className="animate-rise">

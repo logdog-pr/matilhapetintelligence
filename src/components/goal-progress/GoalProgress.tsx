@@ -4,12 +4,17 @@
  * Barra de meta da Matilha: carrega como uma barra de progresso, com o
  * cachorro correndo em cima da ponta do preenchimento. Ao terminar, ele senta;
  * ao bater 100%, ganha um osso e a barra brilha.
+ * Interativo: o humor do cachorro segue a projeção; passar o mouse mostra a
+ * fala dele; clicar faz ele pular, latir e trocar de frase. Os marcos de
+ * 25/50/75% acendem quando são ultrapassados.
  */
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { formatBRL, formatDate, formatPercent } from "@/lib/format";
 import type { GoalProgress as GoalProgressData } from "@/lib/metrics/goals";
 import { cn } from "@/lib/utils";
 import { DogRunner } from "./DogRunner";
+import { dogLines, dogMood } from "./dogMood";
 
 const DURATION_MS = 1800;
 const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
@@ -25,6 +30,8 @@ export interface GoalProgressProps {
   extras?: { label: string; value: string }[];
   size?: "lg" | "md";
   className?: string;
+  /** Link de ação quando o cachorro está preocupado (ex.: clientes em risco). */
+  helpHref?: string;
 }
 
 function usePrefersReducedMotion() {
@@ -39,7 +46,7 @@ function usePrefersReducedMotion() {
   return reduced;
 }
 
-export function GoalProgress({ title, subtitle, progress, extras, size = "lg", className }: GoalProgressProps) {
+export function GoalProgress({ title, subtitle, progress, extras, size = "lg", className, helpHref = "/clientes?classe=oportunidades" }: GoalProgressProps) {
   const pct = progress.percent ?? 0;
   const target = Math.min(Math.max(pct, 0), 100);
   const complete = pct >= 100;
@@ -74,6 +81,33 @@ export function GoalProgress({ title, subtitle, progress, extras, size = "lg", c
     };
   }, [target, pct, reduced]);
 
+  const mood = dogMood(progress);
+  const lines = dogLines(progress);
+  const [lineIdx, setLineIdx] = useState(0);
+  const [bubble, setBubble] = useState<"hover" | "click" | null>(null);
+  const [jumping, setJumping] = useState(false);
+  const bubbleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function poke() {
+    if (running) return;
+    setLineIdx((i) => (i + 1) % lines.length);
+    setBubble("click");
+    if (!reduced) {
+      setJumping(false);
+      requestAnimationFrame(() => setJumping(true));
+    }
+    if (bubbleTimer.current) clearTimeout(bubbleTimer.current);
+    bubbleTimer.current = setTimeout(() => setBubble(null), 3200);
+  }
+  useEffect(
+    () => () => {
+      if (bubbleTimer.current) clearTimeout(bubbleTimer.current);
+    },
+    [],
+  );
+
+  // Balão alinhado para não sair do card perto das bordas
+  const bubbleAlign: "left" | "center" | "right" = shown >= 70 ? "right" : shown <= 30 ? "left" : "center";
   const transition = reduced ? "none" : `width ${DURATION_MS}ms ${EASE}, left ${DURATION_MS}ms ${EASE}`;
   const dogLeft = `clamp(0px, calc(${shown}% - ${DOG_W * DOG_ANCHOR}px), calc(100% - ${DOG_W}px))`;
   const p = progress;
@@ -95,13 +129,47 @@ export function GoalProgress({ title, subtitle, progress, extras, size = "lg", c
 
       {/* pista + cachorro */}
       <div className="relative mt-4 pt-[54px]">
-        <div
-          className="goal-dog pointer-events-none absolute top-0 z-10"
-          style={{ left: dogLeft, transition, width: DOG_W }}
-        >
-          <div className={cn(complete && !running && "dog-hop")}>
-            <DogRunner pose={running ? "run" : "sit"} celebrate={complete && !running} />
-          </div>
+        <div className="goal-dog absolute top-0 z-10" style={{ left: dogLeft, transition, width: DOG_W }}>
+          {bubble && !running && (
+            <div
+              role="status"
+              className={cn(
+                "speech-bubble pointer-events-none absolute bottom-[58px] z-20 w-max max-w-[240px] rounded-xl border border-navy-100 bg-white px-3 py-2 text-xs leading-snug text-navy-950 shadow-lg shadow-navy-950/10",
+                bubbleAlign === "center" && "left-1/2",
+                bubbleAlign === "left" && "left-0",
+                bubbleAlign === "right" && "right-0",
+              )}
+              style={{ ["--bx" as string]: bubbleAlign === "center" ? "-50%" : "0%" }}
+            >
+              {bubble === "click" && <span className="mr-1 font-semibold text-navy-700">Au!</span>}
+              {lines[lineIdx]}
+              <span
+                className="absolute -bottom-1.5 h-3 w-3 -translate-x-1/2 rotate-45 border-b border-r border-navy-100 bg-white"
+                style={bubbleAlign === "center" ? { left: "50%" } : bubbleAlign === "left" ? { left: DOG_W / 2 } : { right: DOG_W / 2 - 12 }}
+                aria-hidden
+              />
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={poke}
+            onMouseEnter={() => !running && bubble !== "click" && setBubble("hover")}
+            onMouseLeave={() => bubble === "hover" && setBubble(null)}
+            onFocus={() => !running && setBubble("hover")}
+            onBlur={() => setBubble(null)}
+            aria-label={`Mascote da meta: ${lines[0]}`}
+            className={cn(
+              "block cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500",
+              running && "pointer-events-none",
+            )}
+          >
+            <div
+              className={cn(complete && !running && !jumping && "dog-hop", jumping && "dog-jump dog-poke")}
+              onAnimationEnd={(e) => e.animationName === "dog-jump" && setJumping(false)}
+            >
+              <DogRunner pose={running ? "run" : "sit"} celebrate={complete && !running} mood={running ? "normal" : mood} />
+            </div>
+          </button>
           {complete && !running && <PawBurst />}
         </div>
 
@@ -131,15 +199,42 @@ export function GoalProgress({ title, subtitle, progress, extras, size = "lg", c
           </div>
         </div>
 
+        {/* pontos dos marcos: acendem quando a barra passa por eles */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-[22px] h-4">
+          {[25, 50, 75].map((m) => {
+            const passed = shown >= m;
+            return (
+              <span
+                key={m}
+                title={`${m}% da meta · ${p.target === null ? "—" : formatBRL((p.target * m) / 100)}`}
+                className={cn(
+                  "pointer-events-auto absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 transition-colors duration-300",
+                  passed ? "milestone-on border-white bg-white shadow-[0_0_0_2px_rgba(15,38,71,0.35)]" : "border-navy-100 bg-white",
+                )}
+                style={{ left: `${m}%`, animationDelay: passed ? `${(m / 100) * DURATION_MS}ms` : undefined }}
+              />
+            );
+          })}
+        </div>
+
         <div className="mt-1.5 flex justify-between text-[11px] tabular-nums text-muted">
           <span>R$ 0</span>
+          <span className="hidden text-navy-300 sm:inline">{!running && "passe o mouse no cachorro · clique para ele latir"}</span>
           <span>{formatBRL(p.target)}</span>
         </div>
       </div>
 
       {p.exceededBy !== null && (
-        <p className="mt-2 rounded-md bg-navy-50 px-3 py-2 text-sm font-medium text-navy-900">
+        <p className="animate-pop mt-2 rounded-md bg-navy-50 px-3 py-2 text-sm font-medium text-navy-900">
           Meta batida! {formatBRL(p.exceededBy)} acima da meta (+{formatPercent(pct - 100)}).
+        </p>
+      )}
+      {mood === "preocupado" && p.phase === "em_andamento" && !running && (
+        <p className="animate-rise mt-2 flex flex-wrap items-center justify-between gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-warning">
+          <span>No ritmo atual a projeção fica abaixo de 80% da meta.</span>
+          <Link href={helpHref} className="font-semibold underline-offset-2 hover:underline">
+            Ver clientes para contatar →
+          </Link>
         </p>
       )}
 

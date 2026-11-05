@@ -42,5 +42,6 @@ export const GET = apiRoute({ permission: "search:use", rateLimit: { limit: 60, 
       : Promise.resolve([]),
   ]);
 
-  return { customers: customerRows, products: productRows, sellers: sellerRows };
+  // Links só para o que o perfil pode abrir (vendedor não abre a página de estoque).
+  return { customers: customerRows, products: productRows, sellers: sellerRows, canOpenProducts: can(user, "stock:view") };
 });

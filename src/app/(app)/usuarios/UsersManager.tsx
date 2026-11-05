@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "@/components/ui/Toaster";
 import { UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -27,7 +28,11 @@ export function UsersManager({ users, sellers, meId, canCreate }: { users: Row[]
   async function patch(id: string, body: Partial<Pick<Row, "role" | "sellerId" | "active">>) {
     setError(null);
     const res = await fetch(`/api/users/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-    if (!res.ok) setError((await res.json().catch(() => ({}))).error ?? "Falha ao atualizar.");
+    if (!res.ok) {
+      const msg = (await res.json().catch(() => ({}))).error ?? "Falha ao atualizar.";
+      setError(msg);
+      toast(msg, "error");
+    } else toast("Usuário atualizado.");
     router.refresh();
   }
 
@@ -46,6 +51,7 @@ export function UsersManager({ users, sellers, meId, canCreate }: { users: Row[]
     }
     setCreating(false);
     setForm({ name: "", email: "", password: "", role: "VENDEDOR", sellerId: "" });
+    toast("Usuário criado. Ele já pode entrar com o e-mail e a senha inicial.");
     router.refresh();
   }
 

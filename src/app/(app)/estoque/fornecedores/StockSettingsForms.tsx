@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "@/components/ui/Toaster";
 import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -26,7 +27,10 @@ export function LeadTimeInput({ supplierId, initial, disabled }: { supplierId: s
       body: JSON.stringify({ leadTimeDays: parsed }),
     });
     setState(res.ok ? "saved" : "error");
-    if (res.ok) router.refresh();
+    if (res.ok) {
+      toast(parsed === null ? "Prazo removido: será usado o padrão." : `Prazo de entrega salvo: ${parsed} dia(s).`);
+      router.refresh();
+    } else toast("Não foi possível salvar o prazo.", "error");
   }
 
   return (
@@ -85,7 +89,10 @@ export function StockParamsForm({ initial, disabled }: { initial: StockParams; d
     const data = await res.json().catch(() => ({}));
     setSaving(false);
     setMsg(res.ok ? { ok: true, text: "Parâmetros salvos. As sugestões já usam os novos valores." } : { ok: false, text: data.issues?.[0] ? `${data.issues[0].path}: ${data.issues[0].message}` : (data.error ?? "Falha ao salvar.") });
-    if (res.ok) router.refresh();
+    if (res.ok) {
+      toast("Parâmetros de reposição salvos.");
+      router.refresh();
+    }
   }
 
   return (
