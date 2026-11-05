@@ -4,17 +4,34 @@ import { computeOrderTotals, countsAsRevenue } from "@/lib/metrics/orders";
 import { receivableStatus } from "@/lib/pedidook/mappers";
 
 describe("totais do pedido", () => {
-  it("aplica desconto percentual do cabeçalho", () => {
+  it("desconto percentual do cabeçalho já vem embutido no preco_liquido (não reaplica)", () => {
+    // caso real: preco_bruto 377, cabeçalho −10% → preco_liquido 339,30; cobrança = 678,60
     const t = computeOrderTotals({
       tipo_desconto_acrescimo: "percentual",
       valor_desconto_acrescimo: -10,
-      itens: [{ quantidade: 3, preco_bruto: 12, preco_liquido: 10, preco_custo: 6 }],
+      itens: [{ quantidade: 2, preco_bruto: 377, preco_liquido: 339.3, preco_custo: 200 }],
     });
-    expect(t.netAmount).toBe("27.00");
-    expect(t.grossAmount).toBe("36.00");
-    expect(t.discountAmount).toBe("9.00");
-    expect(t.costAmount).toBe("18.00");
-    expect(t.items[0]).toEqual({ totalAmount: "30.00", grossMargin: "12.00" });
+    expect(t.netAmount).toBe("678.60");
+    expect(t.grossAmount).toBe("754.00");
+    expect(t.discountAmount).toBe("75.40");
+    expect(t.costAmount).toBe("400.00");
+    expect(t.items[0]).toEqual({ totalAmount: "678.60", grossMargin: "278.60" });
+  });
+
+  it("desconto em R$ chega com tipo vazio e é aplicado", () => {
+    // caso real: itens 707,00, valor_desconto_acrescimo −115 → cobrança 592,00
+    const t = computeOrderTotals({
+      tipo_desconto_acrescimo: null,
+      valor_desconto_acrescimo: -115,
+      itens: [{ quantidade: 1, preco_liquido: 707 }],
+    });
+    expect(t.netAmount).toBe("592.00");
+  });
+
+  it("custo 0 é desconhecido (não gera margem de 100%)", () => {
+    const t = computeOrderTotals({ itens: [{ quantidade: 1, preco_liquido: 50, preco_custo: 0 }] });
+    expect(t.costAmount).toBeNull();
+    expect(t.items[0].grossMargin).toBeNull();
   });
 
   it("aplica ajuste monetário e ignora itens excluídos", () => {

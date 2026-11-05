@@ -85,7 +85,8 @@ export function mapProduto(r: Produto) {
     packaging: s(r.embalagem),
     packageQty: n(r.qtd_embalagem),
     salePrice: n(r.venda),
-    purchaseCost: n(r.custo),
+    // custo 0 = não cadastrado no PedidoOK (não é custo zero de verdade)
+    purchaseCost: typeof r.custo === "number" && r.custo > 0 ? String(r.custo) : null,
     currentStock: n(r.estoque),
     minimumStock: n(r.estoque_minimo),
     commissionPct: n(r.comissao),

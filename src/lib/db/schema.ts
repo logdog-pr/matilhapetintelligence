@@ -501,24 +501,39 @@ export const auditLogs = pgTable(
 
 // ---------------------------------------------------------------- IA (Fase 6)
 
-export const aiConversations = pgTable("ai_conversations", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  provider: text("provider").notNull(),
-  model: text("model").notNull(),
-  createdAt: createdAt(),
-});
+export const aiConversations = pgTable(
+  "ai_conversations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** Provedor/modelo da última resposta (pode mudar se o admin trocar o provedor). */
+    provider: text("provider").notNull(),
+    model: text("model").notNull(),
+    /** Primeira pergunta, resumida — exibida no histórico. */
+    title: text("title"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("ai_conversations_user_idx").on(t.userId, t.updatedAt)],
+);
 
-export const aiMessages = pgTable("ai_messages", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  conversationId: uuid("conversation_id")
-    .notNull()
-    .references(() => aiConversations.id, { onDelete: "cascade" }),
-  role: text("role").notNull(),
-  content: text("content").notNull(),
-  createdAt: createdAt(),
-});
+export const aiMessages = pgTable(
+  "ai_messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    conversationId: uuid("conversation_id")
+      .notNull()
+      .references(() => aiConversations.id, { onDelete: "cascade" }),
+    /** user | assistant — só o texto final; chamadas de ferramenta ficam em `metadata`. */
+    role: text("role").notNull(),
+    content: text("content").notNull(),
+    /** Fontes consultadas (ferramentas, parâmetros, período), provedor e consumo. */
+    metadata: jsonb("metadata"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("ai_messages_conversation_idx").on(t.conversationId, t.createdAt)],
+);
 
 export type UserRole = (typeof userRole.enumValues)[number];

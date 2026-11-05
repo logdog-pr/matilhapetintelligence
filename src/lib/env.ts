@@ -15,6 +15,8 @@ export const env = {
   pedidookTokenParceiro: () => read("PEDIDOOK_TOKEN_PARCEIRO"),
   pedidookToken: () => read("PEDIDOOK_TOKEN"),
   cronSecret: () => read("CRON_SECRET"),
+  anthropicApiKey: () => read("ANTHROPIC_API_KEY"),
+  openaiApiKey: () => read("OPENAI_API_KEY"),
 };
 
 export type ConfigStatus = { database: boolean; auth: boolean; pedidook: boolean };

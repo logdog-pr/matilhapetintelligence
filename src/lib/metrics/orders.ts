@@ -5,16 +5,22 @@
  *   total_item        = quantidade × preco_liquido
  *   bruto             = Σ quantidade × preco_bruto        (itens não excluídos)
  *   itens_liquido     = Σ total_item                      (itens não excluídos)
- *   ajuste_cabecalho  = percentual → itens_liquido × valor / 100
- *                       monetario  → valor
+ *   ajuste_cabecalho  = percentual → 0 (o PedidoOK JÁ aplica o percentual no preco_liquido dos itens)
+ *                       monetario ou tipo vazio → valor (o desconto em R$ NÃO é distribuído nos itens)
  *                       (valores negativos = desconto, positivos = acréscimo)
  *   liquido           = itens_liquido + ajuste_cabecalho  (frete NÃO incluso)
  *   desconto          = bruto − liquido
  *   custo             = Σ quantidade × preco_custo        (custo histórico da venda)
  *   margem_item       = quantidade × (preco_liquido − preco_custo)
  *
- * ⚠ Fórmula a conferir contra relatórios oficiais do PedidoOK com dados reais
- *   (Fase 1 — critério de conclusão).
+ * preco_custo ≤ 0 é tratado como custo DESCONHECIDO: desde 2025 a conta envia 0
+ * quando o custo não está cadastrado, o que geraria margem falsa de 100%.
+ *
+ * Validado com dados reais (05/11/2026) contra as cobranças geradas pelo PedidoOK:
+ * Σ parcelas = liquido + frete em ~96% dos pedidos com cobrança; as diferenças
+ * restantes são edições manuais (parcelas duplicadas, itens excluídos depois).
+ * - percentual: ex. preco_bruto 377, cabeçalho −10% → preco_liquido 339,30.
+ * - monetário: chega com tipo_desconto_acrescimo = null e valor ≠ 0.
  *
  * Toda a aritmética é feita em centavos inteiros (×10^4 para quantidades)
  * para evitar erro de ponto flutuante.
@@ -69,7 +75,7 @@ export function computeOrderTotals(order: OrderHeaderInput): OrderTotals {
 
   const itemTotals: ItemTotals[] = items.map((it) => {
     const net = mul(it.quantidade, it.preco_liquido ?? 0);
-    const hasCost = it.preco_custo !== null && it.preco_custo !== undefined;
+    const hasCost = typeof it.preco_custo === "number" && it.preco_custo > 0;
     const margin = hasCost ? net - mul(it.quantidade, it.preco_custo as number) : null;
     if (!it.excluido) {
       gross += mul(it.quantidade, it.preco_bruto ?? it.preco_liquido ?? 0);
@@ -82,7 +88,8 @@ export function computeOrderTotals(order: OrderHeaderInput): OrderTotals {
 
   const adjValue = order.valor_desconto_acrescimo ?? 0;
   const adjType = (order.tipo_desconto_acrescimo ?? "").toLowerCase();
-  const adjustment = adjType === "percentual" ? (itemsNet * adjValue) / 100 : adjType === "monetario" ? adjValue : 0;
+  // percentual já está embutido no preco_liquido; qualquer outro tipo (monetario, vazio) é valor em R$.
+  const adjustment = adjType === "percentual" ? 0 : adjValue;
 
   const netRounded = Number(toMoney(itemsNet + adjustment));
   const grossRounded = Number(toMoney(gross));

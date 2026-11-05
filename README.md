@@ -3,11 +3,13 @@
 Camada de inteligência gerencial para a distribuidora, conectada ao **PedidoOK em modo somente leitura**.
 Especificação completa: [matilha.md](matilha.md).
 
-**Fase atual: Fase 1 (fundação)**, com a barra de meta já ligada às metas. Inclui:
+**Fases 1 a 4 e 6 implementadas.** A Fase 5 (financeiro) aguarda a fonte dos recebimentos, que hoje são controlados à mão. Inclui:
 - auditoria da API ([docs/auditoria-pedidook.md](docs/auditoria-pedidook.md));
 - banco de dados, autenticação e RBAC;
 - sincronização (importação histórica e incremental) e painel da integração;
-- metas, com a barra animada do cachorro.
+- metas, com a barra animada do cachorro;
+- dashboard, vendedores, clientes, estoque e promoções;
+- **Pet Intelligence AI** (`/assistente`): assistente com Claude ou OpenAI que responde só com dados consultados por ferramentas do backend, respeitando o perfil do usuário.
 
 Outros documentos: [docs/arquitetura.md](docs/arquitetura.md) e [docs/formulas.md](docs/formulas.md).
 
@@ -40,6 +42,8 @@ Next.js 15 · TypeScript · Tailwind v4 · Drizzle + Supabase (PostgreSQL + Auth
      - ou use um agendador externo chamando `GET /api/cron/sync` com o header `Authorization: Bearer <CRON_SECRET>`.
    - Os intervalos por recurso continuam valendo: cada chamada só sincroniza o que venceu.
 
+8. **Pet Intelligence AI.** Coloque `ANTHROPIC_API_KEY` (crie em https://platform.claude.com) no `.env.local` e na Vercel. O provedor padrão é o Claude (`claude-opus-5-5`). Para usar a OpenAI, coloque `OPENAI_API_KEY` e troque o provedor no próprio assistente, pelo link "Provedor" (só o administrador vê).
+
 Sem credenciais, o sistema abre a página **/configuracao**, que mostra o que falta. Nenhum dado fictício é exibido.
 
 ## Comandos
@@ -49,7 +53,8 @@ Sem credenciais, o sistema abre a página **/configuracao**, que mostra o que fa
 | `pnpm test` | testes: sincronização, fórmulas e permissões (banco em memória) |
 | `pnpm typecheck` / `pnpm lint` / `pnpm build` | verificações |
 | `pnpm db:generate` | gera migration após mudar `src/lib/db/schema.ts` |
-| `pnpm sync:incremental -- --only pedidos` | sincroniza recursos específicos |
+| `pnpm exec tsx scripts/sync.mts --mode incremental --only pedidos` | sincroniza recursos específicos |
+| `pnpm db:recompute` | recalcula totais e custos dos pedidos já importados (sem chamar a API) |
 
 Em desenvolvimento, **/dev/componentes** mostra a barra de meta com valores de exemplo. Essa página não existe em produção.
 

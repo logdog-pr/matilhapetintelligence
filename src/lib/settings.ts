@@ -39,6 +39,10 @@ export const SETTING_DEFAULTS = {
   "stock.params": DEFAULT_STOCK_PARAMS as StockParams,
   /** Feriados (YYYY-MM-DD) desconsiderados no cálculo por dias úteis. */
   "goals.holidays": [] as string[],
+  /** Provedor do Pet Intelligence AI (Fase 6), escolhido pelo ADMIN. */
+  "ai.provider": "claude" as "claude" | "openai",
+  /** Modelo usado por provedor. */
+  "ai.models": { claude: "claude-opus-5-5", openai: "gpt-5" } as { claude: string; openai: string },
 };
 
 export type SettingKey = keyof typeof SETTING_DEFAULTS;
