@@ -17,7 +17,8 @@
     "sync:incremental": "tsx scripts/sync.mts --mode incremental",
     "db:check": "tsx scripts/db-check.mts",
     "db:rls-check": "tsx scripts/rls-check.mts",
-    "db:users-check": "tsx scripts/users-check.mts"
+    "db:users-check": "tsx scripts/users-check.mts",
+    "db:parallel-check": "tsx scripts/parallel-check.mts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -29,7 +30,7 @@
     "drizzle-orm": "^0.45.4",
     "lucide-react": "^1.68.0",
     "next": "15.5.29",
-    "postgres": "^3.4.9",
+    "pg": "^8.23.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "recharts": "^3.10.1",
@@ -42,6 +43,7 @@
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^24.19.2",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.2.1",

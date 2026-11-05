@@ -1,5 +1,5 @@
 /** pnpm db:migrate — aplica as migrations de ./drizzle no PostgreSQL do Supabase. */
-import { migrate } from "drizzle-orm/postgres-js/migrator";
+import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { scriptDb } from "./_db.ts";
 
 const { db, pool } = scriptDb();

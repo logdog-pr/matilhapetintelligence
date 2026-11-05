@@ -1,14 +1,11 @@
 /** pnpm db:rls-check — confirma RLS ligado e que a API pública (anon) não lê dados. */
-import { config } from "dotenv";
-import postgres from "postgres";
+import { scriptDb } from "./_db.ts";
 
-config({ path: ".env.local", quiet: true });
-
-const sql = postgres(process.env.DATABASE_URL!, { prepare: false, max: 1, onnotice: () => {} });
-const rows = await sql<{ relname: string; relrowsecurity: boolean }[]>`
-  select c.relname, c.relrowsecurity from pg_class c join pg_namespace n on n.oid = c.relnamespace
-  where n.nspname = 'public' and c.relkind = 'r'`;
-await sql.end();
+const { pool } = scriptDb();
+const { rows } = await pool.query<{ relname: string; relrowsecurity: boolean }>(
+  "select c.relname, c.relrowsecurity from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r'",
+);
+await pool.end();
 const off = rows.filter((r) => !r.relrowsecurity).map((r) => r.relname);
 console.log(`RLS: ${rows.length - off.length}/${rows.length} tabelas protegidas${off.length ? ` · SEM RLS: ${off.join(", ")}` : ""}`);
 

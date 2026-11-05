@@ -1,24 +1,27 @@
 /** pnpm db:check — testa a conexão com o banco (sem exibir credenciais). */
-import { config } from "dotenv";
-import postgres from "postgres";
+import type { TLSSocket } from "node:tls";
+import { scriptDb } from "./_db.ts";
 
-config({ path: ".env.local", quiet: true });
-config({ quiet: true });
-
-const url = process.env.DATABASE_URL;
-if (!url) {
-  console.error("DATABASE_URL não configurada (.env.local).");
-  process.exit(1);
-}
-
-const sql = postgres(url, { prepare: false, max: 1, connect_timeout: 15, onnotice: () => {} });
+const { pool } = scriptDb();
 try {
-  const [r] = await sql`select current_user, version()`;
-  const [t] = await sql`select count(*)::int as n from information_schema.tables where table_schema = 'public'`;
-  console.log(`Conectado como ${r.current_user} · ${String(r.version).split(" ").slice(0, 2).join(" ")} · tabelas em public: ${t.n}`);
+  const client = await pool.connect();
+  try {
+    const r = await client.query(
+      "select current_user, version(), (select count(*)::int from information_schema.tables where table_schema = 'public') as n",
+    );
+    const row = r.rows[0];
+    // TLS do NOSSO lado (aplicação → pooler do Supabase)
+    const socket = (client as unknown as { connection: { stream: TLSSocket } }).connection.stream;
+    const tls = socket.encrypted
+      ? `TLS ${socket.getProtocol()} · certificado ${socket.authorized ? "verificado" : "NÃO verificado"} (${socket.getPeerCertificate()?.issuer?.CN ?? "?"})`
+      : "sem TLS";
+    console.log(`Conectado como ${row.current_user} · ${String(row.version).split(" ").slice(0, 2).join(" ")} · tabelas em public: ${row.n} · ${tls}`);
+  } finally {
+    client.release();
+  }
 } catch (e) {
   console.error("Falha na conexão:", (e as Error).message);
   process.exitCode = 1;
 } finally {
-  await sql.end();
+  await pool.end();
 }
