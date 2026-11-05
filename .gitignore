@@ -47,3 +47,6 @@ next-env.d.ts
 *.csv
 *.xlsx
 *.xls
+
+# gerado no postinstall
+/public/maplibre/

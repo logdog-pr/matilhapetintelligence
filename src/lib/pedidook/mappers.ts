@@ -44,6 +44,12 @@ export function mapFornecedor(r: Fornecedor) {
   };
 }
 
+/** Aceita só coordenadas plausíveis no Brasil (descarta 0,0 e valores trocados/vazios). */
+export function validCoords(lat: number | null | undefined, lng: number | null | undefined) {
+  const ok = typeof lat === "number" && typeof lng === "number" && lat > -34.5 && lat < 6 && lng > -74.5 && lng < -28;
+  return { latitude: ok ? lat.toFixed(7) : null, longitude: ok ? lng.toFixed(7) : null };
+}
+
 export function mapCliente(r: Cliente) {
   const e = r.endereco ?? {};
   return {
@@ -61,6 +67,7 @@ export function mapCliente(r: Cliente) {
     city: s(e.cidade),
     state: s(e.uf),
     zip: digits(e.cep),
+    ...validCoords(r.latitude, r.longitude),
     creditLimit: n(r.limite_credito),
     ...common(r),
     raw: r,

@@ -26,6 +26,8 @@ export interface CustomerRow extends CustomerMetrics {
   city: string | null;
   state: string | null;
   segment: string | null;
+  latitude: number | null;
+  longitude: number | null;
   /** Vendedor(es) responsável(eis): associação oficial; senão, vendedor do último pedido. */
   sellerNames: string | null;
   sellerIds: string[];
@@ -59,7 +61,7 @@ export async function classifyCustomers(db: Database, opts: { asOf: string; sell
       group by cs.customer_id
     )
     select h.customer_pedidook_id as pid, h.orders, c.id as customer_id, c.corporate_name, c.trade_name, c.cnpj, c.phone,
-      c.city, c.state, c.segment,
+      c.city, c.state, c.segment, c.latitude, c.longitude,
       coalesce(l.names, ls.name) as seller_names,
       coalesce(l.ids, case when ls.id is null then array[]::text[] else array[ls.id::text] end) as seller_ids
     from h
@@ -79,6 +81,8 @@ export async function classifyCustomers(db: Database, opts: { asOf: string; sell
     city: string | null;
     state: string | null;
     segment: string | null;
+    latitude: string | null;
+    longitude: string | null;
     seller_names: string | null;
     seller_ids: string[] | string | null;
   };
@@ -96,6 +100,8 @@ export async function classifyCustomers(db: Database, opts: { asOf: string; sell
       city: r.city,
       state: r.state,
       segment: r.segment,
+      latitude: r.latitude === null ? null : Number(r.latitude),
+      longitude: r.longitude === null ? null : Number(r.longitude),
       sellerNames: r.seller_names,
       sellerIds: ids,
       ...classifyCustomer(orders.map((o) => ({ date: o.d, amount: num(o.a) })), opts.asOf, params),

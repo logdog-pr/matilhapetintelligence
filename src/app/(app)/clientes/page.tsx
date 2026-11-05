@@ -2,6 +2,7 @@ import { asc, eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ClassBadge } from "@/components/customers/ClassBadge";
+import { ViewToggle } from "@/components/customers/ViewToggle";
 import { ParamsForm, type ParamField } from "@/components/forms/ParamsForm";
 import { Card, CardContent, EmptyState, PageHeader, Select, Table, inputClass, td, th } from "@/components/ui/primitives";
 import { can } from "@/lib/auth/rbac";
@@ -69,6 +70,12 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
       <PageHeader
         title={isSeller ? "Meus clientes" : "Clientes"}
         description={`Classificação pela frequência de recompra de cada cliente · referência ${formatDate(data.today)}${isSeller ? " · considera só os seus pedidos" : ""}`}
+        actions={
+          <ViewToggle
+            active="lista"
+            query={new URLSearchParams(Object.entries(raw).filter(([k, v]) => !!v && k !== "pagina") as [string, string][]).toString()}
+          />
+        }
       />
 
       {/* Classes (clicáveis) */}

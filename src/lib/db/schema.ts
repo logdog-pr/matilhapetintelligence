@@ -114,6 +114,9 @@ export const customers = pgTable(
     city: text("city"),
     state: text("state"),
     zip: text("zip"),
+    /** Coordenadas do cadastro do PedidoOK (opcionais); validadas no mapeamento. */
+    latitude: numeric("latitude", { precision: 10, scale: 7 }),
+    longitude: numeric("longitude", { precision: 10, scale: 7 }),
     creditLimit: money("credit_limit"),
     active: boolean("active").notNull().default(true),
     deletedInSource: deletedInSource(),

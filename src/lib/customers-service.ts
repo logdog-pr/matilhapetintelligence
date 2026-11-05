@@ -81,3 +81,86 @@ export async function customerDetail(db: Database, user: Principal, customerId: 
   ]);
   return { today, customer: row, orders, products, monthly, scopedToSeller: isSeller };
 }
+
+// ------------------------------------------------------------------ mapa de clientes
+
+export interface MapPoint {
+  id: string | null;
+  name: string;
+  city: string | null;
+  state: string | null;
+  cls: CustomerClass;
+  revenue: number;
+  monthly: number;
+  lat: number;
+  lng: number;
+  precision: "exata" | "cidade";
+}
+
+export interface MapRegion {
+  city: string;
+  state: string | null;
+  customers: number;
+  revenue: number;
+  atRisk: number;
+}
+
+/**
+ * Pontos para o mapa de calor (mesmos filtros e escopo da lista de clientes).
+ * Envia ao navegador só o necessário: nome, cidade, classe e valores — sem CNPJ/telefone.
+ */
+export async function customersMap(db: Database, user: Principal, q: CustomersQuery, now = new Date()) {
+  const { locate } = await import("@/lib/geo/locate");
+  const today = todayInSaoPaulo(now);
+  const isSeller = user.role === "VENDEDOR";
+  const ownSeller = isSeller ? scopeSellerId(user, q.vendedor ?? null) : null;
+  const rows = await classifyCustomers(db, { asOf: today, sellerId: ownSeller });
+  const filtered = filterCustomers(rows, {
+    classe: q.classe,
+    sellerId: isSeller ? null : (q.vendedor ?? null),
+    cidade: q.cidade,
+    uf: q.uf,
+    faturamentoMin: q.faturamento_min,
+    diasSemComprarMin: q.dias_min,
+    busca: q.busca,
+  });
+
+  const points: MapPoint[] = [];
+  let missing = 0;
+  const regions = new Map<string, MapRegion>();
+  for (const r of filtered) {
+    const loc = locate(r);
+    const key = `${(r.city ?? "Sem cidade").trim()}|${r.state ?? ""}`;
+    const reg = regions.get(key) ?? { city: (r.city ?? "Sem cidade").trim(), state: r.state, customers: 0, revenue: 0, atRisk: 0 };
+    reg.customers++;
+    reg.revenue += r.totalRevenue;
+    if (r.class === "em_risco" || r.class === "inativo") reg.atRisk++;
+    regions.set(key, reg);
+    if (!loc || loc.precision === "sem_localizacao") {
+      missing++;
+      continue;
+    }
+    points.push({
+      id: r.customerId,
+      name: r.tradeName ?? r.name,
+      city: r.city,
+      state: r.state,
+      cls: r.class,
+      revenue: r.totalRevenue,
+      monthly: r.monthlyRevenue,
+      lat: loc.lat,
+      lng: loc.lng,
+      precision: loc.precision,
+    });
+  }
+
+  return {
+    today,
+    points,
+    total: filtered.length,
+    exact: points.filter((p) => p.precision === "exata").length,
+    byCity: points.filter((p) => p.precision === "cidade").length,
+    missing,
+    regions: [...regions.values()].map((r) => ({ ...r, revenue: Math.round(r.revenue * 100) / 100 })).sort((a, b) => b.customers - a.customers || b.revenue - a.revenue),
+  };
+}
