@@ -9,13 +9,15 @@ A API **não** devolve o total do pedido. Ele é calculado a partir dos itens n�
 |---|---|
 | total do item | `quantidade × preco_liquido` |
 | bruto (`gross_amount`) | `Σ quantidade × preco_bruto` |
-| ajuste do cabeçalho | `percentual`: `Σ itens × valor / 100` · `monetario`: `valor` (negativo = desconto) |
+| ajuste do cabeçalho | `percentual`: **0**, porque o PedidoOK já embute o percentual no `preco_liquido` dos itens · `monetario` ou tipo vazio: `valor` (negativo = desconto) |
 | líquido (`net_amount`) | `Σ itens + ajuste` (**frete não incluso**) |
 | desconto | `bruto − líquido` |
-| custo (`cost_amount`) | `Σ quantidade × preco_custo`, o custo **histórico** da venda. Fica nulo se algum item não tiver custo |
+| custo (`cost_amount`) | `Σ quantidade × preco_custo`, o custo **histórico** da venda. Fica nulo se algum item não tiver custo; `preco_custo` ≤ 0 conta como **sem custo** |
 | margem do item | `quantidade × (preco_liquido − preco_custo)` |
 
-⚠ Esta fórmula ainda precisa ser conferida contra um relatório oficial do PedidoOK. Isso faz parte do critério de conclusão da Fase 1.
+✔ Validada em 05/11/2026 com os dados reais: em ~96% dos pedidos que têm cobrança no PedidoOK, a soma das parcelas é igual a `líquido + frete`. As diferenças restantes são edições manuais (parcelas duplicadas, itens excluídos depois). Ainda vale conferir o faturamento de um mês com um relatório oficial do PedidoOK.
+
+Depois de mudar esta fórmula, rode `pnpm db:recompute`. Ele recalcula os pedidos já importados a partir do JSON original, sem chamar a API.
 
 ## Faturamento ([src/lib/queries/revenue.ts](../src/lib/queries/revenue.ts))
 `Σ net_amount` dos pedidos que atendem a três condições:

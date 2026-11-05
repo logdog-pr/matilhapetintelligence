@@ -70,8 +70,8 @@ describe("importação histórica", () => {
   it("calcula e preserva totais e custo histórico do pedido", async () => {
     await runListResource(db, client(docServer().impl), "pedidos", opts);
     const [o] = await db.select().from(t.orders);
-    // 22 × 78,80 + 2 × 30,88 = 1.795,36 ; −6% = 1.687,64
-    expect(o.netAmount).toBe("1687.64");
+    // 22 × 78,80 + 2 × 30,88 = 1.795,36 ; o −6% do cabeçalho já está embutido no preco_liquido
+    expect(o.netAmount).toBe("1795.36");
     expect(o.grossAmount).toBe("1854.78"); // 22×80,99 + 2×36,50
     expect(o.costAmount).toBe("1364.90"); // 22×60 + 2×22,45
     expect(o.status).toBe("pedido");
