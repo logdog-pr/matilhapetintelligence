@@ -11,6 +11,9 @@ export type Permission =
   | "goals:view_all" // metas de todos os vendedores e da empresa
   | "goals:manage"
   | "sellers:view_all"
+  | "customers:view" // inteligência de clientes (vendedor: só os próprios)
+  | "promotions:view" // sugestões de promoção (mostram custo e margem)
+  | "promotions:manage" // gerar, aprovar e rejeitar sugestões
   | "stock:view" // módulo de estoque (custos de aquisição)
   | "stock:manage" // prazos de fornecedores e parâmetros de reposição
   | "integration:view"
@@ -27,6 +30,9 @@ const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     "goals:view_all",
     "goals:manage",
     "sellers:view_all",
+    "customers:view",
+    "promotions:view",
+    "promotions:manage",
     "stock:view",
     "stock:manage",
     "integration:view",
@@ -35,8 +41,19 @@ const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     "settings:manage",
     "search:use",
   ],
-  GESTOR: ["dashboard:view", "dashboard:company", "goals:view", "goals:view_all", "sellers:view_all", "stock:view", "search:use"],
-  VENDEDOR: ["dashboard:view", "goals:view", "search:use"],
+  GESTOR: [
+    "dashboard:view",
+    "dashboard:company",
+    "goals:view",
+    "goals:view_all",
+    "sellers:view_all",
+    "customers:view",
+    "promotions:view",
+    "promotions:manage",
+    "stock:view",
+    "search:use",
+  ],
+  VENDEDOR: ["dashboard:view", "goals:view", "customers:view", "search:use"],
 };
 
 export interface Principal {

@@ -35,7 +35,7 @@ Faturamento **não** é recebimento e **não** é lucro.
 | Período anterior | mês atual → mesmos dias do mês anterior; mês anterior → mês retrasado; ano atual → mesmo intervalo do ano anterior; demais → janela anterior de mesmo tamanho |
 | Lucro bruto estimado | `Σ líquido − Σ custo histórico` **só dos pedidos com custo conhecido** (estimativa; não é lucro líquido) |
 | Margem bruta | `lucro bruto estimado ÷ faturamento dos pedidos com custo conhecido × 100`, com a cobertura exibida (% do faturamento com custo) |
-| Clientes ativos / inativos | **provisório (Fase 2)**: ativo = comprou nos últimos `customers.activeDays` (90) dias até o fim do período; inativo = já comprou, mas não nesse intervalo. Substituído na Fase 4 pela frequência individual |
+| Clientes ativos / em risco / inativos | classificação por frequência individual (ver "Clientes"), na data final do período. Ativos = ativo + recorrente + novo + recuperado |
 | Estoque crítico | produtos ativos com `estoque_minimo > 0` e `estoque ≤ estoque_minimo` (estoque **atual**, não histórico) |
 | Produtos / categorias mais vendidos | `Σ total dos itens` (antes do ajuste do cabeçalho), itens não excluídos, de pedidos que contam como faturamento |
 | Desempenho por vendedor | faturamento pelo `id_vendedor` oficial do pedido (sem inferência) |
@@ -93,6 +93,44 @@ Vendas = quantidade dos itens não excluídos de pedidos que contam como faturam
 - Sazonalidade ainda não é considerada: a janela é móvel. Isso fica para depois, quando houver histórico real.
 
 Parâmetros (`stock.params`), editáveis pelo administrador: janela 90 d, segurança 7 d, revisão 7 d, prazo padrão 7 d, histórico mínimo 30 d, excesso > 120 d, parado > 60 d.
+
+## Clientes ([src/lib/metrics/customers.ts](../src/lib/metrics/customers.ts))
+Base: pedidos que contam como faturamento até a data de referência. **Vendedor:** só os pedidos dele.
+
+| Item | Regra (configurável em `customers.classification`) |
+|---|---|
+| intervalo médio | média dos dias entre datas de compra distintas |
+| padrão individual | a partir de 3 compras; abaixo disso, limites gerais de 45 (risco) e 90 (inativo) dias |
+| em risco | dias sem comprar > 1,5 × intervalo médio (piso de 7 dias) |
+| inativo | dias sem comprar > 2,5 × intervalo médio (piso de 14 dias) |
+| novo | primeira compra registrada nos últimos 30 dias ⚠ depende do histórico importado |
+| recuperado | última compra nos últimos 60 dias, depois de um intervalo maior que o limite de inativo calculado com o histórico anterior |
+| recorrente | ativo com 4 ou mais compras nos últimos 180 dias |
+| precedência | novo > recuperado > inativo > em risco > recorrente > ativo |
+| próxima compra esperada | última compra + intervalo médio |
+| faturamento médio mensal | faturamento acumulado ÷ meses desde a primeira compra (valor "em jogo" nas oportunidades) |
+
+Oportunidades = clientes em risco + inativos, ordenados pelo faturamento médio mensal.
+
+## Promoções ([src/lib/metrics/promotions.ts](../src/lib/metrics/promotions.ts))
+- **Margem:** `(preço − custo) ÷ preço × 100`.
+- **Preço mínimo para a margem desejada:** `custo ÷ (1 − margem)`.
+- Simplificação: a margem não considera impostos, comissões e frete.
+- **Preço sugerido:** `máx(preço × (1 − desconto), preço mínimo para a margem mínima)`. Sem espaço para desconto, não há sugestão.
+- **Estoque disponível para promoção:** `estoque − máx(estoque mínimo cadastrado, estoque protegido)`.
+
+| Tipo | Gatilho | Desconto | Quantidade potencial (premissa) |
+|---|---|---|---|
+| Produto parado | situação "parado" do estoque | desconto máximo | % de escoamento × disponível |
+| Excesso | cobertura acima do limite | metade do máximo | % de escoamento × unidades acima da cobertura-alvo |
+| Queda de vendas | últimos 30 dias ≥ 30% abaixo dos 30 anteriores | metade do máximo | volume perdido |
+| Margem elevada | margem ≥ 40% e vendas recentes | sem desconto (venda ativa) | +20% do volume de 30 dias |
+| Venda casada | par em ≥ 3 pedidos e confiança ≥ 20% (90 dias) | 5% no item adicional | pedidos do âncora sem o item × confiança |
+
+- **Impacto:** lucro bruto estimado `qtd × (preço sugerido − custo)`.
+- **Capital liberado:** `qtd × custo` (somente nos tipos parado e excesso).
+- Sugestões decididas não voltam por 30 dias.
+- As sugestões **nunca** alteram preços no PedidoOK.
 
 ## Cobranças: status derivado ([src/lib/pedidook/mappers.ts](../src/lib/pedidook/mappers.ts))
 A API não tem campo de status, então ele é derivado:

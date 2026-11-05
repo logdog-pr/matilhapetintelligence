@@ -19,6 +19,9 @@ import { formatBRL, formatDate, formatInt } from "@/lib/format";
 import { goalsForUser } from "@/lib/goals-service";
 import { variation } from "@/lib/queries/dashboard";
 import { countNewCustomers } from "@/lib/queries/revenue";
+import { classCounts, classifyCustomers } from "@/lib/queries/customers";
+import { ClassBadge } from "@/components/customers/ClassBadge";
+import type { CustomerClass } from "@/lib/metrics/customers";
 
 export const metadata: Metadata = { title: "Vendedor" };
 
@@ -42,13 +45,16 @@ export default async function SellerProfilePage({
   const parsed = dashboardQuerySchema.safeParse(await searchParams);
   const q = parsed.success ? parsed.data : {};
   const scope = resolveScope(user, { ...q, vendedor: id });
-  const [overview, sales, top, newCustomers, goals] = await Promise.all([
+  const [overview, sales, top, newCustomers, goals, portfolio] = await Promise.all([
     dashboardOverview(db, scope),
     dashboardSales(db, scope),
     dashboardTopProducts(db, scope),
     countNewCustomers(db, { start: scope.period.start, end: scope.period.end, sellerId: id }),
     goalsForUser(db, user, { month: scope.period.end.slice(0, 7), sellerId: id }),
+    classifyCustomers(db, { asOf: scope.period.end, sellerId: id }),
   ]);
+  const carteira = classCounts(portfolio);
+  const carteiraClasses: CustomerClass[] = ["recorrente", "ativo", "novo", "recuperado", "em_risco", "inativo"];
   const goal = goals.goals.find((g) => g.sellerId === id && g.periodKind === "MENSAL" && g.targetRevenue) ?? null;
   const prevNote = `vs. ${scope.period.previous.label.toLowerCase()}`;
   const ordersHref = `/pedidos?${new URLSearchParams({ p: scope.period.preset, ...(scope.period.preset === "personalizado" ? { de: scope.period.start, ate: scope.period.end } : {}), ...(user.role !== "VENDEDOR" ? { vendedor: id } : {}) }).toString()}`;
@@ -79,7 +85,7 @@ export default async function SellerProfilePage({
           <Kpi label="Faturamento" value={overview.revenue} format="brl" icon={TrendingUp} delta={variation(overview.revenue, overview.previous.revenue)} deltaLabel={prevNote} href={ordersHref} />
           <Kpi label="Pedidos" value={overview.orders} icon={ShoppingBag} delay={60} delta={variation(overview.orders, overview.previous.orders)} deltaLabel={prevNote} href={ordersHref} />
           <Kpi label="Ticket médio" value={overview.averageTicket} format="brl" icon={Receipt} delay={120} />
-          <Kpi label="Clientes ativos" value={overview.activeCustomers} icon={UserCheck} delay={180} hint={`compraram nos últimos ${overview.activeDays} dias`} />
+          <Kpi label="Clientes ativos" value={overview.activeCustomers} icon={UserCheck} delay={180} hint={`${overview.atRiskCustomers} em risco · ${overview.inactiveCustomers} inativos`} href={`/clientes?vendedor=${id}`} />
           <Kpi label="Novos clientes" value={newCustomers} icon={Sparkles} delay={240} hint="primeira compra no período" />
         </div>
 
@@ -109,7 +115,26 @@ export default async function SellerProfilePage({
             />
           </section>
         </div>
-        <p className="text-xs text-muted">Clientes recuperados e clientes sem recompra entram na Fase 4 (inteligência de clientes).</p>
+        <section className="lift animate-rise rounded-xl border border-navy-100 bg-white p-5">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-navy-950">Carteira de clientes</h2>
+            <Link href={user.role === "VENDEDOR" ? "/clientes" : `/clientes?vendedor=${id}`} className="text-xs font-medium text-navy-700 hover:underline">
+              Ver clientes
+            </Link>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-6">
+            {carteiraClasses.map((c) => (
+              <div key={c} className="rounded-lg border border-navy-100 p-3">
+                <ClassBadge cls={c} />
+                <p className="mt-1.5 text-xl font-semibold tabular-nums text-navy-950">{formatInt(carteira[c])}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-muted">
+            Clientes sem recompra (em risco + inativos): {formatInt(carteira.em_risco + carteira.inativo)} · {formatBRL(carteira.atStakeMonthly)}/mês em jogo. Considera os pedidos
+            deste vendedor até {formatDate(scope.period.end)}.
+          </p>
+        </section>
       </div>
     </>
   );

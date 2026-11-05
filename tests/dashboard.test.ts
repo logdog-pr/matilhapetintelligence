@@ -3,7 +3,6 @@ import * as t from "@/lib/db/schema";
 import type { Database } from "@/lib/db/types";
 import { eachDay, resolvePeriod } from "@/lib/periods";
 import {
-  getCustomerActivity,
   getDailySeries,
   getMonthlySeries,
   getOverview,
@@ -137,11 +136,12 @@ describe("consultas do dashboard", () => {
     expect(ov.criticalStock).toBeNull();
   });
 
-  it("clientes ativos e inativos", async () => {
-    const all = await getCustomerActivity(db, { end: "2026-11-18", sellerId: null, activeDays: 90 });
-    expect(all).toEqual({ active: 3, inactive: 1 }); // 10, 11, 12 ativos; 13 inativo
-    const anaOnly = await getCustomerActivity(db, { end: "2026-11-18", sellerId: ana, activeDays: 90 });
-    expect(anaOnly).toEqual({ active: 2, inactive: 0 });
+  it("clientes ativos, em risco e inativos pela classificação individual", async () => {
+    const all = await getOverview(db, { ...nov, sellerId: null, includeCompanyOnly: true });
+    // 10 (out+nov) ativo; 11 e 12 novos; 13 (só março) inativo
+    expect([all.activeCustomers, all.atRiskCustomers, all.inactiveCustomers]).toEqual([3, 0, 1]);
+    const anaOnly = await getOverview(db, { ...nov, sellerId: ana, includeCompanyOnly: false });
+    expect([anaOnly.activeCustomers, anaOnly.inactiveCustomers]).toEqual([2, 0]);
   });
 
   it("série diária preenche todos os dias e alinha o período anterior", async () => {

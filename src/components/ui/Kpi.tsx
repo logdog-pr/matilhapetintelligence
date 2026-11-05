@@ -20,6 +20,7 @@ export function Kpi({
   deltaLabel = "vs. período anterior",
   href,
   invertDelta = false,
+  text,
 }: {
   label: string;
   value: number | null;
@@ -32,6 +33,8 @@ export function Kpi({
   href?: string;
   /** Quando subir é ruim (ex.: clientes inativos). */
   invertDelta?: boolean;
+  /** Texto exibido no lugar do número (ex.: uma data). */
+  text?: string;
 }) {
   const up = delta !== null && delta !== undefined && delta > 0;
   const down = delta !== null && delta !== undefined && delta < 0;
@@ -50,7 +53,7 @@ export function Kpi({
         )}
       </div>
       <p className="mt-1 text-2xl font-semibold tabular-nums text-navy-950">
-        {format === "pct" ? (value === null ? "—" : formatPercent(value)) : <CountUp value={value} format={format} />}
+        {text !== undefined ? text : format === "pct" ? (value === null ? "—" : formatPercent(value)) : <CountUp value={value} format={format} />}
       </p>
       {delta !== undefined && (
         <p className="mt-1 flex items-center gap-1 text-[11px] text-muted">

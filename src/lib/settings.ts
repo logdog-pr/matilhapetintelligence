@@ -4,6 +4,8 @@
 import { eq } from "drizzle-orm";
 import { appSettings } from "@/lib/db/schema";
 import type { Database } from "@/lib/db/types";
+import { DEFAULT_CLASSIFICATION_PARAMS, type ClassificationParams } from "@/lib/metrics/customers";
+import { DEFAULT_PROMOTION_PARAMS, type PromotionParams } from "@/lib/metrics/promotions";
 import { DEFAULT_STOCK_PARAMS, type StockParams } from "@/lib/metrics/stock";
 
 export const SETTING_DEFAULTS = {
@@ -29,11 +31,10 @@ export const SETTING_DEFAULTS = {
   "sync.customerSellersRefreshDays": 7,
   /** Status de pedido que contam como faturamento. */
   "revenue.statuses": ["pedido"] as string[],
-  /**
-   * Cliente "ativo" no dashboard: comprou nos últimos N dias até o fim do período.
-   * Provisório até a classificação por frequência individual (Fase 4).
-   */
-  "customers.activeDays": 90,
+  /** Classificação de clientes por frequência individual (Fase 4). */
+  "customers.classification": DEFAULT_CLASSIFICATION_PARAMS as ClassificationParams,
+  /** Regras do motor de promoções (Fase 4). */
+  "promotions.params": DEFAULT_PROMOTION_PARAMS as PromotionParams,
   /** Parâmetros de reposição de estoque (Fase 3). */
   "stock.params": DEFAULT_STOCK_PARAMS as StockParams,
   /** Feriados (YYYY-MM-DD) desconsiderados no cálculo por dias úteis. */

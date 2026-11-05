@@ -8,7 +8,7 @@ import type { Database } from "@/lib/db/types";
 import { analyzeStock, type StockAnalysis, type StockParams, type StockStatus } from "@/lib/metrics/stock";
 import { addDays, daysBetween, eachDay } from "@/lib/periods";
 import { getSetting } from "@/lib/settings";
-import { rowsOf } from "./dashboard";
+import { rowsOf } from "@/lib/db/rows";
 
 const num = (v: unknown) => (v === null || v === undefined ? 0 : Number(v));
 const numOrNull = (v: unknown) => (v === null || v === undefined ? null : Number(v));

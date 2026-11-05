@@ -372,19 +372,40 @@ export const stockMovements = pgTable(
 
 // ---------------------------------------------------------------- inteligência (fases futuras)
 
-export const promotions = pgTable("promotions", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  productId: uuid("product_id").references(() => products.id, { onDelete: "cascade" }),
-  promotionType: text("promotion_type").notNull(),
-  suggestedPrice: money("suggested_price"),
-  minimumMargin: numeric("minimum_margin", { precision: 7, scale: 4 }),
-  estimatedQuantity: qty("estimated_quantity"),
-  estimatedRevenue: money("estimated_revenue"),
-  estimatedProfit: money("estimated_profit"),
-  reasoning: text("reasoning"),
-  status: text("status").notNull().default("sugerida"),
-  createdAt: createdAt(),
-});
+/**
+ * Sugestões do motor de promoções (spec §12). Nunca alteram preços no PedidoOK.
+ * status: sugerida | aprovada | rejeitada. Valores congelados no momento da geração.
+ */
+export const promotions = pgTable(
+  "promotions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    productId: uuid("product_id").references(() => products.id, { onDelete: "cascade" }),
+    /** Venda casada: produto âncora (quem leva este, leva o productId). */
+    relatedProductId: uuid("related_product_id").references(() => products.id, { onDelete: "cascade" }),
+    promotionType: text("promotion_type").notNull(),
+    situation: text("situation"),
+    currentStock: qty("current_stock"),
+    unitCost: money("unit_cost"),
+    currentPrice: money("current_price"),
+    suggestedPrice: money("suggested_price"),
+    discountPct: numeric("discount_pct", { precision: 7, scale: 4 }),
+    /** Margem estimada após o preço sugerido (%). */
+    minimumMargin: numeric("minimum_margin", { precision: 7, scale: 4 }),
+    estimatedQuantity: qty("estimated_quantity"),
+    estimatedRevenue: money("estimated_revenue"),
+    estimatedProfit: money("estimated_profit"),
+    capitalFreed: money("capital_freed"),
+    impactEstimate: money("impact_estimate"),
+    reasoning: text("reasoning"),
+    status: text("status").notNull().default("sugerida"),
+    decidedBy: uuid("decided_by").references(() => users.id, { onDelete: "set null" }),
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
+    decisionNote: text("decision_note"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("promotions_status_idx").on(t.status, t.createdAt), index("promotions_product_idx").on(t.productId)],
+);
 
 export const recommendations = pgTable("recommendations", {
   id: uuid("id").primaryKey().defaultRandom(),

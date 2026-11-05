@@ -1,4 +1,4 @@
-import { AlertTriangle, PackageX, Percent, Receipt, ShoppingBag, TrendingUp, UserCheck, UserX } from "lucide-react";
+import { AlertTriangle, PackageX, Percent, Receipt, ShoppingBag, TrendingUp, UserCheck, UserMinus, UserX } from "lucide-react";
 import Link from "next/link";
 import { DailyRevenueChart } from "@/components/charts/DailyRevenueChart";
 import { MonthlyRevenueChart, TicketTrendChart } from "@/components/charts/MonthlyCharts";
@@ -104,12 +104,20 @@ export function DashboardView({
             }
           />
         ) : (
-          <Kpi label="Clientes atendidos" value={o.activeCustomers} icon={UserCheck} delay={180} hint={`compraram nos últimos ${o.activeDays} dias`} />
+          <Kpi label="Clientes em risco" value={o.atRiskCustomers} icon={UserMinus} delay={180} hint="passaram do intervalo habitual de recompra" href="/clientes?classe=em_risco" />
         )}
+        <Kpi
+          label="Clientes ativos"
+          value={o.activeCustomers}
+          icon={UserCheck}
+          delay={240}
+          hint={`ativos, recorrentes, novos e recuperados em ${formatDate(period.end)}`}
+          href="/clientes"
+        />
         {showMargin && (
-          <Kpi label="Clientes ativos" value={o.activeCustomers} icon={UserCheck} delay={240} hint={`compraram nos últimos ${o.activeDays} dias até ${formatDate(period.end)}`} />
+          <Kpi label="Clientes em risco" value={o.atRiskCustomers} icon={UserMinus} delay={270} hint="passaram do intervalo habitual de recompra" href="/clientes?classe=em_risco" />
         )}
-        <Kpi label="Clientes inativos" value={o.inactiveCustomers} icon={UserX} delay={300} hint={`sem compra há mais de ${o.activeDays} dias (regra provisória)`} />
+        <Kpi label="Clientes inativos" value={o.inactiveCustomers} icon={UserX} delay={300} hint="muito além do intervalo habitual de recompra" href="/clientes?classe=inativo" />
         {showStock && (
           <Kpi label="Estoque crítico" value={o.criticalStock} icon={o.criticalStock ? AlertTriangle : PackageX} delay={360} hint="produtos no estoque mínimo ou abaixo (estoque atual)" href="/estoque?relatorio=comprar" />
         )}

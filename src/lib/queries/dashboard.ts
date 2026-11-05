@@ -6,17 +6,14 @@
 import { and, asc, count, desc, eq, isNotNull, sql, sum } from "drizzle-orm";
 import { customers, orderItems, orders, products, sellers } from "@/lib/db/schema";
 import type { Database } from "@/lib/db/types";
-import { addDays, eachDay, lastMonths } from "@/lib/periods";
-import { getSetting } from "@/lib/settings";
+import { eachDay, lastMonths } from "@/lib/periods";
+import { classCounts, classifyCustomers } from "./customers";
 import { getRevenueSummary, revenueWhere, type RevenueFilter } from "./revenue";
 
 const num = (v: unknown) => (v === null || v === undefined ? 0 : Number(v));
 const round2 = (v: number) => Math.round(v * 100) / 100;
 
-/** Normaliza o retorno de db.execute (node-postgres → {rows}; PGlite → {rows}; postgres-js → array). */
-export function rowsOf<T>(res: unknown): T[] {
-  return (Array.isArray(res) ? res : ((res as { rows?: T[] }).rows ?? [])) as T[];
-}
+export { rowsOf } from "@/lib/db/rows";
 
 // ------------------------------------------------------------------ indicadores
 
@@ -30,9 +27,10 @@ export interface Overview {
   /** % do faturamento com custo conhecido (qualidade da estimativa). */
   costCoveragePct: number | null;
   previous: { revenue: number; orders: number; averageTicket: number | null };
+  /** Classificação por frequência individual (ativo + recorrente + novo + recuperado). */
   activeCustomers: number;
+  atRiskCustomers: number;
   inactiveCustomers: number;
-  activeDays: number;
   /** null quando o usuário não pode ver estoque (VENDEDOR). */
   criticalStock: number | null;
 }
@@ -42,7 +40,7 @@ export async function getOverview(
   f: RevenueFilter & { previous: { start: string; end: string }; includeCompanyOnly: boolean },
 ): Promise<Overview> {
   const where = await revenueWhere(db, f);
-  const [cur, prev, profitRow, activeDays] = await Promise.all([
+  const [cur, prev, profitRow, customerRows] = await Promise.all([
     getRevenueSummary(db, f),
     getRevenueSummary(db, { ...f, start: f.previous.start, end: f.previous.end }),
     db
@@ -52,7 +50,7 @@ export async function getOverview(
       })
       .from(orders)
       .where(and(where, isNotNull(orders.costAmount))),
-    getSetting(db, "customers.activeDays"),
+    classifyCustomers(db, { asOf: f.end, sellerId: f.sellerId ?? null }),
   ]);
 
   const knownRevenue = num(profitRow[0]?.knownRevenue);
@@ -60,7 +58,7 @@ export async function getOverview(
   const hasCost = knownRevenue > 0;
   const grossProfit = hasCost ? round2(knownRevenue - knownCost) : null;
 
-  const customersStats = await getCustomerActivity(db, { end: f.end, sellerId: f.sellerId ?? null, activeDays });
+  const customersStats = classCounts(customerRows);
 
   let criticalStock: number | null = null;
   if (f.includeCompanyOnly) {
@@ -86,34 +84,10 @@ export async function getOverview(
     costCoveragePct: cur.revenue > 0 ? round2((knownRevenue / cur.revenue) * 100) : null,
     previous: { revenue: prev.revenue, orders: prev.orders, averageTicket: prev.averageTicket },
     activeCustomers: customersStats.active,
-    inactiveCustomers: customersStats.inactive,
-    activeDays,
+    atRiskCustomers: customersStats.em_risco,
+    inactiveCustomers: customersStats.inativo,
     criticalStock,
   };
-}
-
-/**
- * Clientes ativos/inativos na data `end` (regra provisória da Fase 2):
- * ativo = última compra nos últimos `activeDays` dias; inativo = já comprou, mas não nesse intervalo.
- * Para VENDEDOR, considera apenas pedidos atribuídos a ele.
- */
-export async function getCustomerActivity(db: Database, f: { end: string; sellerId: string | null; activeDays: number }) {
-  const statuses = await getSetting(db, "revenue.statuses");
-  const statusList = sql.join((statuses.length ? statuses : ["pedido"]).map((s) => sql`${s}`), sql`, `);
-  const sellerCond = f.sellerId ? sql`and seller_id = ${f.sellerId}` : sql``;
-  const since = addDays(f.end, -(f.activeDays - 1));
-  const res = await db.execute(sql`
-    select
-      count(*) filter (where last_order >= ${since})::int as active,
-      count(*) filter (where last_order < ${since})::int as inactive
-    from (
-      select customer_pedidook_id, max(order_date) as last_order
-      from orders
-      where deleted_in_source = false and status in (${statusList}) and order_date <= ${f.end} ${sellerCond}
-      group by customer_pedidook_id
-    ) t`);
-  const row = rowsOf<{ active: number; inactive: number }>(res)[0];
-  return { active: num(row?.active), inactive: num(row?.inactive) };
 }
 
 // ------------------------------------------------------------------ séries
