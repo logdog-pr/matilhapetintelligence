@@ -111,7 +111,7 @@ export function DashboardView({
         )}
         <Kpi label="Clientes inativos" value={o.inactiveCustomers} icon={UserX} delay={300} hint={`sem compra há mais de ${o.activeDays} dias (regra provisória)`} />
         {showStock && (
-          <Kpi label="Estoque crítico" value={o.criticalStock} icon={o.criticalStock ? AlertTriangle : PackageX} delay={360} hint="produtos no estoque mínimo ou abaixo (estoque atual)" />
+          <Kpi label="Estoque crítico" value={o.criticalStock} icon={o.criticalStock ? AlertTriangle : PackageX} delay={360} hint="produtos no estoque mínimo ou abaixo (estoque atual)" href="/estoque?relatorio=comprar" />
         )}
       </div>
 

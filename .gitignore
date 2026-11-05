@@ -40,3 +40,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Exportações com dados de clientes (LGPD) — nunca versionar
+/dados-importacao/*
+!/dados-importacao/LEIA-ME.md
+*.csv
+*.xlsx
+*.xls

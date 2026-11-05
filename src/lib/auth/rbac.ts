@@ -11,6 +11,8 @@ export type Permission =
   | "goals:view_all" // metas de todos os vendedores e da empresa
   | "goals:manage"
   | "sellers:view_all"
+  | "stock:view" // módulo de estoque (custos de aquisição)
+  | "stock:manage" // prazos de fornecedores e parâmetros de reposição
   | "integration:view"
   | "integration:manage"
   | "users:manage"
@@ -25,13 +27,15 @@ const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     "goals:view_all",
     "goals:manage",
     "sellers:view_all",
+    "stock:view",
+    "stock:manage",
     "integration:view",
     "integration:manage",
     "users:manage",
     "settings:manage",
     "search:use",
   ],
-  GESTOR: ["dashboard:view", "dashboard:company", "goals:view", "goals:view_all", "sellers:view_all", "search:use"],
+  GESTOR: ["dashboard:view", "dashboard:company", "goals:view", "goals:view_all", "sellers:view_all", "stock:view", "search:use"],
   VENDEDOR: ["dashboard:view", "goals:view", "search:use"],
 };
 

@@ -4,6 +4,7 @@
 import { eq } from "drizzle-orm";
 import { appSettings } from "@/lib/db/schema";
 import type { Database } from "@/lib/db/types";
+import { DEFAULT_STOCK_PARAMS, type StockParams } from "@/lib/metrics/stock";
 
 export const SETTING_DEFAULTS = {
   /** Intervalo mínimo entre sincronizações incrementais, em minutos (spec §5). */
@@ -33,6 +34,8 @@ export const SETTING_DEFAULTS = {
    * Provisório até a classificação por frequência individual (Fase 4).
    */
   "customers.activeDays": 90,
+  /** Parâmetros de reposição de estoque (Fase 3). */
+  "stock.params": DEFAULT_STOCK_PARAMS as StockParams,
   /** Feriados (YYYY-MM-DD) desconsiderados no cálculo por dias úteis. */
   "goals.holidays": [] as string[],
 };

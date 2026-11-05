@@ -58,6 +58,42 @@ Como os dias são contados:
 
 Novos clientes: clientes cuja primeira compra registrada cai dentro do período. Esse número depende do histórico que a API disponibilizou.
 
+## Estoque ([src/lib/metrics/stock.ts](../src/lib/metrics/stock.ts), [src/lib/queries/stock.ts](../src/lib/queries/stock.ts))
+Vendas = quantidade dos itens não excluídos de pedidos que contam como faturamento, na unidade de venda do PedidoOK.
+
+| Indicador | Fórmula |
+|---|---|
+| dias analisados | `mín(janela, dias de histórico importado)` (não divide 90 dias de demanda por um histórico de 20) |
+| demanda média diária | `vendido na janela ÷ dias analisados` |
+| cobertura | `estoque ÷ demanda média` (sem demanda → "—") |
+| estoque de segurança | `demanda × dias de segurança` |
+| ponto de reposição | `demanda × prazo de entrega + segurança` |
+| estoque desejado | `demanda × (prazo + intervalo de revisão) + segurança`, nunca abaixo do estoque mínimo cadastrado |
+| quantidade sugerida | `máx(0, desejado − estoque − compras pendentes)`, arredondada para cima |
+| custo da reposição | `sugerido × custo atual do produto` |
+| valor em estoque | `estoque atual × custo atual` |
+
+**Situações:**
+- **ruptura**: sem estoque, com demanda ou mínimo cadastrado.
+- **comprar**: no ponto de reposição ou abaixo dele (ou abaixo do mínimo), com sugestão > 0.
+- **parado**: tem estoque e está sem venda há mais de `idleDays`.
+- **excesso**: cobertura maior que `excessCoverageDays`.
+- **sem giro**: sem demanda no período.
+- **ok**: os demais.
+
+**Qualidade da estimativa:**
+- **insuficiente**: histórico menor que `minHistoryDays`, nenhuma venda na janela ou estoque não informado. Não há sugestão, exceto completar o estoque mínimo cadastrado.
+- **limitada**: vendido em menos de 3 dias na janela, ou fornecedor sem prazo configurado (nesse caso usa o prazo padrão).
+- **boa**: os demais.
+
+**Limitações da API (auditoria):**
+- Compras pendentes não existem na API e são consideradas 0.
+- Prazo de entrega também não existe e é configurado manualmente por fornecedor.
+- Não há movimentações de estoque. O estoque é sempre o atual, e o histórico só existe a partir dos snapshots diários.
+- Sazonalidade ainda não é considerada: a janela é móvel. Isso fica para depois, quando houver histórico real.
+
+Parâmetros (`stock.params`), editáveis pelo administrador: janela 90 d, segurança 7 d, revisão 7 d, prazo padrão 7 d, histórico mínimo 30 d, excesso > 120 d, parado > 60 d.
+
 ## Cobranças: status derivado ([src/lib/pedidook/mappers.ts](../src/lib/pedidook/mappers.ts))
 A API não tem campo de status, então ele é derivado:
 - **pago**: tem `pagamento` e `valor_pago ≥ valor − desconto`.
