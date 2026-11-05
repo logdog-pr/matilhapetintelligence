@@ -100,7 +100,11 @@ export function AIChat({
   const [showSettings, setShowSettings] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), [messages, busy]);
+  // Chaves obrigatórias: em navegadores novos scrollIntoView retorna uma Promise, e um
+  // useEffect não pode retornar nada além de uma função (o React tentaria "chamar" a Promise).
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, busy]);
 
   const currentConfigured = providers.providers.find((p) => p.id === providers.current)?.configured ?? configured;
 
@@ -111,7 +115,7 @@ export function AIChat({
       const res = await fetch(`/api/ai/conversations/${id}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setMessages(data.messages);
+      setMessages(Array.isArray(data.messages) ? data.messages.map((m: Message) => ({ ...m, content: m.content ?? "" })) : []);
     } catch (e) {
       setMessages([{ id: "err", role: "assistant", content: (e as Error).message || "Falha ao abrir a conversa.", error: true }]);
     } finally {
@@ -146,9 +150,14 @@ export function AIChat({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ conversationId: activeId ?? undefined, message }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Falha ao consultar o assistente.");
-      setMessages((m) => [...m, { id: `a-${Date.now()}`, role: "assistant", content: data.message.content, metadata: data.message.metadata }]);
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data) {
+        throw new Error(
+          data?.error ?? (res.status === 504 ? "O assistente demorou demais para responder. Tente uma pergunta mais curta." : "Falha ao consultar o assistente."),
+        );
+      }
+      const content = typeof data?.message?.content === "string" && data.message.content.trim() ? data.message.content : "Não obtive resposta do assistente. Tente novamente.";
+      setMessages((m) => [...m, { id: `a-${Date.now()}`, role: "assistant", content, metadata: data?.message?.metadata ?? null }]);
       if (!activeId) {
         setActiveId(data.conversationId);
         setConversations((c) => [{ id: data.conversationId, title: message.slice(0, 80), updatedAt: new Date().toISOString() }, ...c]);

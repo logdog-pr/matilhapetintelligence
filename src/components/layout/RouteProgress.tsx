@@ -28,15 +28,18 @@ export function RouteProgress() {
       if (url.pathname === window.location.pathname && url.search === window.location.search) return;
       setActive(true);
     };
+    // Só formulários GET que realmente navegam (com action própria e sem preventDefault)
     const onSubmit = (e: SubmitEvent) => {
+      if (e.defaultPrevented) return;
       const f = e.target as HTMLFormElement;
-      if ((f.method || "get").toLowerCase() === "get") setActive(true);
+      if (!f.getAttribute("action") || (f.method || "get").toLowerCase() !== "get") return;
+      setActive(true);
     };
     document.addEventListener("click", onClick, true);
-    document.addEventListener("submit", onSubmit, true);
+    document.addEventListener("submit", onSubmit); // fase de bolha: respeita preventDefault
     return () => {
       document.removeEventListener("click", onClick, true);
-      document.removeEventListener("submit", onSubmit, true);
+      document.removeEventListener("submit", onSubmit);
     };
   }, []);
 

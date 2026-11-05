@@ -110,7 +110,9 @@ export function GlobalSearch({ role }: { role?: Role }) {
     ];
   }, [q, results, role]);
 
-  useEffect(() => setActive(0), [items.length]);
+  useEffect(() => {
+    setActive(0);
+  }, [items.length]);
 
   function go(item: Item | undefined) {
     if (!item?.href) return;
