@@ -34,7 +34,11 @@ Next.js 15 · TypeScript · Tailwind v4 · Drizzle + Supabase (PostgreSQL + Auth
    - ou, no sistema, Integração PedidoOK → Importação histórica.
 6. **Confira os números.** Compare a contagem de registros e o faturamento de um mês com um relatório oficial do PedidoOK. ⚠ Esse é o critério de conclusão da Fase 1.
 7. **Publique na Vercel.** Configure as mesmas variáveis de ambiente.
-   - O cron de `vercel.json` roda a cada 5 min e precisa do plano Pro. No Hobby, use um agendador externo chamando `GET /api/cron/sync` com o header `Authorization: Bearer <CRON_SECRET>`.
+   - O cron de `vercel.json` está configurado para 1×/dia (09:00 UTC = 06:00 em Brasília), o máximo permitido no plano Hobby.
+   - Para a frequência do spec (pedidos a cada 5 min), use uma das opções:
+     - no plano Pro, mude o `schedule` para `*/5 * * * *`;
+     - ou use um agendador externo chamando `GET /api/cron/sync` com o header `Authorization: Bearer <CRON_SECRET>`.
+   - Os intervalos por recurso continuam valendo: cada chamada só sincroniza o que venceu.
 
 Sem credenciais, o sistema abre a página **/configuracao**, que mostra o que falta. Nenhum dado fictício é exibido.
 

@@ -4,8 +4,8 @@ import postgres from "postgres";
 import * as schema from "../src/lib/db/schema";
 import type { Database } from "../src/lib/db/types";
 
-config({ path: ".env.local" });
-config();
+config({ path: ".env.local", quiet: true });
+config({ quiet: true });
 
 export function scriptDb(): { db: Database; pool: { end: () => Promise<void> } } {
   const url = process.env.DATABASE_URL;

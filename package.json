@@ -14,7 +14,9 @@
     "db:migrate": "tsx scripts/migrate.mts",
     "seed:admin": "tsx scripts/seed-admin.mts",
     "sync:full": "tsx scripts/sync.mts --mode full",
-    "sync:incremental": "tsx scripts/sync.mts --mode incremental"
+    "sync:incremental": "tsx scripts/sync.mts --mode incremental",
+    "db:check": "tsx scripts/db-check.mts",
+    "db:rls-check": "tsx scripts/rls-check.mts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
