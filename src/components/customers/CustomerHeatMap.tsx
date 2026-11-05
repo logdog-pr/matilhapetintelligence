@@ -43,7 +43,7 @@ function escapeHtml(s: string) {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 }
 
-export function CustomerHeatMap({ points }: { points: HeatPoint[] }) {
+export function CustomerHeatMap({ points, emptyMessage }: { points: HeatPoint[]; emptyMessage?: { title: string; description: string } }) {
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MlMap | null>(null);
   const [mode, setMode] = useState<"clientes" | "faturamento">("clientes");
@@ -94,11 +94,18 @@ export function CustomerHeatMap({ points }: { points: HeatPoint[] }) {
         mapRef.current = map;
         map.addControl(new ml.NavigationControl({ showCompass: false }), "top-right");
         map.on("error", (e) => {
+          console.warn("[mapa]", e?.error?.message ?? e);
           if (String(e?.error?.message ?? "").includes("Failed to fetch")) setError("Não foi possível carregar o mapa-base (sem conexão com o servidor de mapas).");
         });
         map.on("load", () => {
           if (!map) return;
           map.addSource("clientes", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+          // Rótulos do mapa-base em português quando houver (senão, o nome local)
+          for (const layer of map.getStyle().layers ?? []) {
+            if (layer.type === "symbol" && map.getLayoutProperty(layer.id, "text-field")) {
+              map.setLayoutProperty(layer.id, "text-field", ["coalesce", ["get", "name:pt"], ["get", "name"]]);
+            }
+          }
           // Desenha abaixo dos rótulos do mapa-base, para os nomes das cidades continuarem legíveis
           const firstLabel = map.getStyle().layers?.find((l) => l.type === "symbol")?.id;
           map.addLayer({
@@ -222,6 +229,14 @@ export function CustomerHeatMap({ points }: { points: HeatPoint[] }) {
         <div className="absolute inset-x-3 top-14 z-10 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-warning">{error}</div>
       )}
       {!ready && !error && <div className="absolute inset-0 grid place-items-center text-sm text-muted">Carregando mapa…</div>}
+      {ready && points.length === 0 && emptyMessage && (
+        <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center">
+          <div className="animate-pop max-w-sm rounded-xl border border-navy-100 bg-white/95 px-5 py-4 text-center shadow-sm backdrop-blur">
+            <p className="text-sm font-semibold text-navy-950">{emptyMessage.title}</p>
+            <p className="mt-1 text-xs text-muted">{emptyMessage.description}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

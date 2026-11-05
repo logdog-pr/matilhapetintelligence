@@ -2,6 +2,8 @@
  * Mascote da Matilha — cachorro original em SVG (silhueta azul-marinho com
  * contorno branco). Pose "run": patas alternando enquanto a barra carrega.
  * Pose "sit": sentado quando a barra para. Pose "sit" + celebrate: osso acima.
+ * Humor (mood): "feliz" (língua de fora, cauda rápida), "normal",
+ * "preocupado" (orelha caída, gota de suor, cauda lenta).
  */
 import { useId } from "react";
 
@@ -9,13 +11,17 @@ const NAVY = "#0f2647";
 const NAVY_FAR = "#2b4a80";
 const NAVY_DEEP = "#0a1a33";
 
+export type DogMood = "feliz" | "normal" | "preocupado";
+
 export function DogRunner({
   pose,
   celebrate = false,
+  mood = "normal",
   className,
 }: {
   pose: "run" | "sit";
   celebrate?: boolean;
+  mood?: DogMood;
   className?: string;
 }) {
   const filterId = `dog-outline-${useId().replace(/:/g, "")}`;
@@ -26,7 +32,7 @@ export function DogRunner({
       width="72"
       height="52"
       aria-hidden="true"
-      className={`${pose === "run" ? "dog-running" : ""} ${className ?? ""}`}
+      className={`${pose === "run" ? "dog-running" : ""} dog-mood-${mood} ${className ?? ""}`}
       style={{ overflow: "visible" }}
     >
       <defs>
@@ -92,15 +98,32 @@ export function DogRunner({
             <g className="dog-head">
               <ellipse cx="46" cy="13" rx="8" ry="7" fill={NAVY} />
               <path d="M50 9.5 Q59 9.5 60.5 14.5 Q59.5 19 51 19 Z" fill={NAVY} />
-              <path d="M40 8 Q37.5 0.5 43 1.5 Q46.5 5.5 45 10 Z" fill={NAVY_DEEP} />
+              {mood === "preocupado" ? (
+                /* orelha caída */
+                <path d="M41 7 Q34 9 35 16 Q39 15 43 10 Z" fill={NAVY_DEEP} />
+              ) : (
+                <path className="dog-ear" d="M40 8 Q37.5 0.5 43 1.5 Q46.5 5.5 45 10 Z" fill={NAVY_DEEP} />
+              )}
               <circle cx="59.6" cy="13.4" r="1.7" fill={NAVY_DEEP} />
-              <circle cx="48.2" cy="10.8" r="1.4" fill="#ffffff" />
-              <circle cx="48.6" cy="10.9" r="0.65" fill={NAVY_DEEP} />
+              {mood === "feliz" ? (
+                /* olho sorrindo */
+                <path d="M46.8 11.2 Q48.3 9.4 49.8 11.2" stroke="#ffffff" strokeWidth="1.3" fill="none" strokeLinecap="round" />
+              ) : (
+                <g className="dog-eye">
+                  <circle cx="48.2" cy="10.8" r="1.4" fill="#ffffff" />
+                  <circle cx="48.6" cy="10.9" r="0.65" fill={NAVY_DEEP} />
+                </g>
+              )}
+              {mood === "preocupado" && <path d="M46.5 8.3 L50 7.3" stroke="#ffffff" strokeWidth="1" strokeLinecap="round" />}
+              {mood === "feliz" && <path className="dog-tongue" d="M55 18.6 Q55.6 23.5 57.6 23 Q59 22.4 58.2 18.4 Z" fill="#f08aa0" />}
             </g>
             <path d="M39.5 19 L45.5 23.5" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" />
           </g>
         )}
       </g>
+      {mood === "preocupado" && pose === "sit" && (
+        <path className="dog-sweat" d="M37 4 Q35 8 37 9.5 Q39 8 37 4 Z" fill="#9ec5f4" stroke="#ffffff" strokeWidth="0.8" />
+      )}
     </svg>
   );
 }

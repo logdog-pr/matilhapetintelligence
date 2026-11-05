@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "@/components/ui/Toaster";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -87,6 +88,7 @@ export function GoalForm({
     }
     setOpen(false);
     if (!edit) setForm((f) => ({ ...f, targetRevenue: "", targetOrders: "", targetNewCustomers: "" }));
+    toast(edit ? "Meta atualizada." : "Meta criada. O cachorro já está correndo!");
     router.refresh();
   }
 
@@ -188,8 +190,9 @@ export function DeleteGoalButton({ id }: { id: string }) {
       onClick={async () => {
         if (!confirm("Excluir esta meta?")) return;
         setBusy(true);
-        await fetch(`/api/goals/${id}`, { method: "DELETE" });
+        const res = await fetch(`/api/goals/${id}`, { method: "DELETE" });
         setBusy(false);
+        toast(res.ok ? "Meta excluída." : "Não foi possível excluir a meta.", res.ok ? "info" : "error");
         router.refresh();
       }}
     >

@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "@/components/ui/Toaster";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button, Input, Label } from "@/components/ui/primitives";
@@ -43,7 +44,10 @@ export function ParamsForm({
         ? { ok: true, text: successText }
         : { ok: false, text: data.issues?.[0] ? `${fields.find((f) => f.key === data.issues[0].path)?.label ?? data.issues[0].path}: ${data.issues[0].message}` : (data.error ?? "Falha ao salvar.") },
     );
-    if (res.ok) router.refresh();
+    if (res.ok) {
+      toast(successText);
+      router.refresh();
+    } else toast("Não foi possível salvar os parâmetros.", "error");
   }
 
   return (

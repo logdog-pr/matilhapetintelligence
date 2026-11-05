@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "@/components/ui/Toaster";
 import { DatabaseZap, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -39,7 +40,10 @@ export function SyncActions({ disabled, neverImported }: { disabled: boolean; ne
         const failed = results.find((r) => r.status === "error");
         setLog(`Lote ${round}: ${read} registros lidos.${failed ? ` Erro em ${failed.resource}: ${failed.message}` : ""}`);
         router.refresh();
-        if (data.done || failed || mode === "incremental") break;
+        if (data.done || failed || mode === "incremental") {
+          toast(failed ? `Sincronização com erro em ${failed.resource}.` : mode === "full" ? "Importação concluída." : "Dados sincronizados.", failed ? "error" : "success");
+          break;
+        }
         if (results.some((r) => r.status === "partial" && r.message?.includes("requisições"))) {
           setLog("Limite diário de requisições atingido. A importação continuará automaticamente amanhã.");
           break;
@@ -47,6 +51,7 @@ export function SyncActions({ disabled, neverImported }: { disabled: boolean; ne
       }
     } catch (e) {
       setLog((e as Error).message);
+      toast((e as Error).message, "error");
     } finally {
       setBusy(null);
       router.refresh();

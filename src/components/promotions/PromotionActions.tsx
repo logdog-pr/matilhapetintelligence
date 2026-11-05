@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "@/components/ui/Toaster";
 import { Check, RefreshCw, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -20,6 +21,8 @@ export function GenerateButton({ disabled }: { disabled?: boolean }) {
           const data = await res.json().catch(() => ({}));
           setBusy(false);
           setMsg(res.ok ? `${data.generated} sugestão(ões) gerada(s)${data.skippedRecentlyDecided ? ` · ${data.skippedRecentlyDecided} ignorada(s) por decisão recente` : ""}.` : (data.error ?? "Falha ao gerar."));
+          if (res.ok) toast(`${data.generated} sugestão(ões) atualizada(s).`);
+          else toast(data.error ?? "Falha ao gerar sugestões.", "error");
           router.refresh();
         }}
       >
@@ -46,7 +49,11 @@ export function DecisionButtons({ id }: { id: string }) {
       body: JSON.stringify({ note: note || null }),
     });
     setBusy(null);
-    if (!res.ok) setError((await res.json().catch(() => ({}))).error ?? "Falha.");
+    if (!res.ok) {
+      const msg = (await res.json().catch(() => ({}))).error ?? "Falha.";
+      setError(msg);
+      toast(msg, "error");
+    } else toast(action === "approve" ? "Sugestão aprovada. Nenhum preço foi alterado no PedidoOK." : "Sugestão rejeitada.", action === "approve" ? "success" : "info");
     router.refresh();
   }
 
